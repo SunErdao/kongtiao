@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空调运营图表分析</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0D1B2A;
+            color: #E0E0E0;
+            min-height: 100vh;
+        }
+
+        /* 头部导航 */
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #1B3A5F 0%, #0D1B2A 100%);
+            border-bottom: 1px solid rgba(0, 180, 220, 0.2);
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(0, 180, 220, 0.15);
+            border: 1px solid rgba(0, 180, 220, 0.3);
+            border-radius: 6px;
+            color: #00B4DC;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 180, 220, 0.25);
+        }
+
+        .back-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+            flex: 1;
+        }
+
+        .time-filter {
+            display: flex;
+            gap: 8px;
+        }
+
+        .time-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #8BA3B9;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .time-btn:hover {
+            background: rgba(0, 180, 220, 0.1);
+            border-color: rgba(0, 180, 220, 0.3);
+        }
+
+        .time-btn.active {
+            background: rgba(0, 180, 220, 0.2);
+            border-color: #00B4DC;
+            color: #00B4DC;
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(0, 180, 220, 0.15);
+            border: 1px solid rgba(0, 180, 220, 0.3);
+            border-radius: 6px;
+            color: #00B4DC;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(0, 180, 220, 0.25);
+        }
+
+        .refresh-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+        }
+
+        /* 通用面板 */
+        .panel {
+            background: rgba(20, 40, 70, 0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 180, 220, 0.15);
+            padding: 20px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #00B4DC;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .panel-badge {
+            font-size: 10px;
+            padding: 4px 10px;
+            background: rgba(0, 180, 220, 0.15);
+            border-radius: 12px;
+            color: #00B4DC;
+        }
+
+        .data-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: rgba(139, 163, 185, 0.2);
+            border-radius: 4px;
+            color: #8BA3B9;
+            margin-left: 8px;
+        }
+
+        /* 核心图表区 */
+        .core-charts {
+            grid-column: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-container {
+            height: 280px;
+        }
+
+        .chart-container.small {
+            height: 240px;
+        }
+
+        /* 运营健康度 */
+        .health-panel {
+            grid-column: 2;
+            grid-row: 1 / 3;
+        }
+
+        .health-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .gauge-container {
+            height: 200px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mode-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(0, 217, 165, 0.2);
+            border: 1px solid #00D9A5;
+            border-radius: 20px;
+            color: #00D9A5;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .mode-tag.energy-saving {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: #4ADE80;
+            color: #4ADE80;
+        }
+
+        .mode-tag.night {
+            background: rgba(139, 163, 185, 0.2);
+            border-color: #8BA3B9;
+            color: #8BA3B9;
+        }
+
+        /* 能耗构成 */
+        .consumption-panel {
+            grid-column: 1 / -1;
+        }
+
+        .consumption-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        .donut-container {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .donut-chart {
+            width: 180px;
+            height: 180px;
+        }
+
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .legend-label {
+            font-size: 13px;
+            color: #8BA3B9;
+            flex: 1;
+        }
+
+        .legend-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .legend-percent {
+            font-size: 11px;
+            color: #8BA3B9;
+            margin-left: 8px;
+        }
+
+        /* 关联分析 */
+        .correlation-panel {
+            grid-column: 1 / -1;
+        }
+
+        .correlation-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: rgba(0, 30, 60, 0.5);
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .stat-card.green { --accent-color: #4ADE80; }
+        .stat-card.blue { --accent-color: #00B4DC; }
+        .stat-card.yellow { --accent-color: #FBBF24; }
+        .stat-card.red { --accent-color: #F87171; }
+
+        .stat-label {
+            font-size: 11px;
+            color: #8BA3B9;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+
+        .stat-value .unit {
+            font-size: 14px;
+            font-weight: 400;
+            color: #8BA3B9;
+        }
+
+        .stat-trend {
+            font-size: 11px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-trend.up { color: #4ADE80; }
+        .stat-trend.down { color: #F87171; }
+
+        /* 设备利用率热力图 */
+        .heatmap-container {
+            height: 180px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .health-panel {
+                grid-column: 1;
+                grid-row: auto;
+            }
+            .consumption-content {
+                grid-template-columns: 1fr;
+            }
+            .correlation-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 视图切换 */
+        .view-tabs {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .view-tab {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #8BA3B9;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .view-tab:hover {
+            background: rgba(0, 180, 220, 0.1);
+        }
+
+        .view-tab.active {
+            background: rgba(0, 180, 220, 0.2);
+            border-color: #00B4DC;
+            color: #00B4DC;
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header class="header">
+        <button class="back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            返回
+        </button>
+        <h1 class="page-title">空调运营图表分析</h1>
+        <div class="time-filter">
+            <button class="time-btn" data-days="7">近7天</button>
+            <button class="time-btn active" data-days="30">近30天</button>
+            <button class="time-btn" data-days="0">本月</button>
+            <button class="time-btn" data-days="custom">自定义</button>
+        </div>
+        <button class="refresh-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+            </svg>
+            刷新
+        </button>
+        <div class="view-tabs">
+            <button class="view-tab active">默认视图</button>
+            <button class="view-tab">节能分析</button>
+            <button class="view-tab">故障排查</button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 核心图表区 -->
+        <div class="core-charts">
+            <!-- 日用电量趋势 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3v18h18"/>
+                            <path d="M18 9l-5 5-4-4-6 6"/>
+                        </svg>
+                        日用电量趋势
+                        <span class="data-tag">估算</span>
+                    </div>
+                    <span class="panel-badge">kWh</span>
+                </div>
+                <div class="chart-container" id="dailyConsumptionChart"></div>
+            </div>
+
+            <div class="charts-row">
+                <!-- 小时级负荷曲线 -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            小时级负荷曲线
+                        </div>
+                    </div>
+                    <div class="chart-container small" id="hourlyLoadChart"></div>
+                </div>
+
+                <!-- 实时功率波动 -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                            实时功率波动
+                        </div>
+                    </div>
+                    <div class="chart-container small" id="realtimePowerChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 运营健康度 -->
+        <div class="panel health-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    运营健康度
+                </div>
+            </div>
+            <div class="health-content">
+                <div class="gauge-container" id="healthGaugeChart"></div>
+                <div style="text-align: center;">
+                    <span class="mode-tag energy-saving">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                        节能模式运行中
+                    </span>
+                </div>
+                <div class="heatmap-container" id="utilizationHeatmap"></div>
+            </div>
+        </div>
+
+        <!-- 能耗构成与异常分析 -->
+        <div class="panel consumption-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 2v20M2 12h20"/>
+                    </svg>
+                    能耗构成与异常分析
+                </div>
+            </div>
+            <div class="consumption-content">
+                <!-- 峰谷平电量占比 -->
+                <div>
+                    <div style="font-size: 12px; color: #8BA3B9; margin-bottom: 12px;">峰谷平电量占比</div>
+                    <div class="donut-container">
+                        <div class="donut-chart" id="peakValleyDonut"></div>
+                        <div class="donut-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #F87171"></div>
+                                <span class="legend-label">峰时</span>
+                                <span class="legend-value">1,240</span>
+                                <span class="legend-percent">35%</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #FBBF24"></div>
+                                <span class="legend-label">平时</span>
+                                <span class="legend-value">1,560</span>
+                                <span class="legend-percent">44%</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: #4ADE80"></div>
+                                <span class="legend-label">谷时</span>
+                                <span class="legend-value">756</span>
+                                <span class="legend-percent">21%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 系统能耗占比 -->
+                <div id="systemConsumptionChart" style="height: 200px;"></div>
+            </div>
+        </div>
+
+        <!-- 关联分析与节能效果 -->
+        <div class="panel correlation-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v6m0 6v10"/>
+                        <path d="M1 12h6m6 0h10"/>
+                    </svg>
+                    关联分析与节能效果
+                </div>
+            </div>
+            <div class="correlation-content">
+                <!-- 温湿度-能耗散点 -->
+                <div id="tempHumidityScatter" style="height: 220px;"></div>
+                <!-- COP-负荷率 -->
+                <div id="copLoadChart" style="height: 220px;"></div>
+                <!-- 累计节能率趋势 -->
+                <div id="savingRateChart" style="height: 220px;"></div>
+                <!-- 节能统计卡片 -->
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="stat-card green">
+                        <div class="stat-label">本月累计节能</div>
+                        <div class="stat-value">¥42,580<span class="unit">元</span></div>
+                        <div class="stat-trend up">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 20l8-8h-6V4h-4v8H4z"/>
+                            </svg>
+                            较上月 +15.3%
+                        </div>
+                    </div>
+                    <div class="stat-card blue">
+                        <div class="stat-label">节能率</div>
+                        <div class="stat-value">18.5<span class="unit">%</span></div>
+                        <div class="stat-trend up">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 20l8-8h-6V4h-4v8H4z"/>
+                            </svg>
+                            达成目标
+                        </div>
+                    </div>
+                    <div class="stat-card yellow">
+                        <div class="stat-label">年度累计节能</div>
+                        <div class="stat-value">¥286K<span class="unit">元</span></div>
+                        <div class="stat-trend up">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 20l8-8h-6V4h-4v8H4z"/>
+                            </svg>
+                            超额完成 6.2%
+                        </div>
+                    </div>
+                    <div class="stat-card red">
+                        <div class="stat-label">异常天数</div>
+                        <div class="stat-value">3<span class="unit">天</span></div>
+                        <div class="stat-trend down">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 4l-8 8h6v8h4v-8h6z"/>
+                            </svg>
+                            较上月 -2天
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 图表配色方案
+        const colors = {
+            primary: '#00B4DC',
+            success: '#4ADE80',
+            warning: '#FBBF24',
+            danger: '#F87171',
+            text: '#E0E0E0',
+            textSecondary: '#8BA3B9',
+            bg: 'rgba(20, 40, 70, 0.4)',
+            border: 'rgba(0, 180, 220, 0.15)'
+        };
+
+        // 日用电量趋势图
+        function initDailyConsumptionChart() {
+            const chart = echarts.init(document.getElementById('dailyConsumptionChart'));
+            const days = 30;
+            const dates = [];
+            const data = [];
+            const baseline = 3800;
+            
+            for (let i = 30; i > 0; i--) {
+                dates.push(`${i}日`);
+                const base = baseline + Math.random() * 600 - 300;
+                // 标记异常高值
+                if (i === 15 || i === 22) {
+                    data.push({ value: base + 800, itemStyle: { color: colors.danger } });
+                } else {
+                    data.push(base);
+                }
+            }
+
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text }
+                },
+                grid: { top: 20, right: 30, bottom: 30, left: 60, containLabel: false },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'kWh',
+                    nameTextStyle: { color: colors.textSecondary, fontSize: 10 },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                series: [{
+                    type: 'line',
+                    data: data,
+                    smooth: true,
+                    lineStyle: { color: colors.primary, width: 2 },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(0, 180, 220, 0.3)' },
+                            { offset: 1, color: 'rgba(0, 180, 220, 0)' }
+                        ])
+                    },
+                    symbol: 'circle',
+                    symbolSize: 6,
+                    markLine: {
+                        silent: true,
+                        data: [{ yAxis: baseline, lineStyle: { color: colors.warning, type: 'dashed' }, label: { formatter: '基准', color: colors.textSecondary } }]
+                    }
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        // 小时级负荷曲线
+        function initHourlyLoadChart() {
+            const chart = echarts.init(document.getElementById('hourlyLoadChart'));
+            const hours = [];
+            const power = [];
+            const cooling = [];
+            const cop = [];
+            
+            for (let i = 0; i < 24; i++) {
+                hours.push(`${i}:00`);
+                power.push(800 + Math.sin(i / 24 * Math.PI * 2) * 300 + Math.random() * 100);
+                cooling.push(3200 + Math.cos(i / 24 * Math.PI * 2) * 800 + Math.random() * 200);
+                cop.push(5 + Math.sin(i / 24 * Math.PI * 2 + 1) * 0.8);
+            }
+
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text }
+                },
+                legend: {
+                    data: ['总功率', '制冷量', 'COP'],
+                    top: 0,
+                    textStyle: { color: colors.textSecondary, fontSize: 10 }
+                },
+                grid: { top: 30, right: 20, bottom: 25, left: 50 },
+                xAxis: {
+                    type: 'category',
+                    data: hours,
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 9 }
+                },
+                yAxis: [
+                    { type: 'value', name: 'kW', axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, axisLabel: { color: colors.textSecondary, fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
+                    { type: 'value', name: 'COP', axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, axisLabel: { color: colors.textSecondary, fontSize: 9 }, splitLine: { show: false }, min: 3, max: 7 }
+                ],
+                series: [
+                    { name: '总功率', type: 'line', data: power, smooth: true, lineStyle: { color: colors.primary, width: 2 }, areaStyle: { color: 'rgba(0, 180, 220, 0.1)' } },
+                    { name: '制冷量', type: 'line', data: cooling, smooth: true, lineStyle: { color: colors.success, width: 2 } },
+                    { name: 'COP', type: 'line', yAxisIndex: 1, data: cop, smooth: true, lineStyle: { color: colors.warning, width: 2 } }
+                ]
+            };
+            chart.setOption(option);
+        }
+
+        // 实时功率波动
+        function initRealtimePowerChart() {
+            const chart = echarts.init(document.getElementById('realtimePowerChart'));
+            const times = [];
+            const data = [];
+            const now = new Date();
+            
+            for (let i = 24; i >= 0; i--) {
+                const t = new Date(now - i * 60 * 60 * 1000);
+                times.push(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`);
+                data.push(750 + Math.sin(i / 4) * 150 + Math.random() * 50);
+            }
+
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text }
+                },
+                grid: { top: 15, right: 20, bottom: 25, left: 50 },
+                xAxis: {
+                    type: 'category',
+                    data: times,
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 9, rotate: 45 }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 9 },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                series: [{
+                    type: 'line',
+                    data: data,
+                    smooth: true,
+                    lineStyle: { color: colors.primary, width: 2 },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(0, 180, 220, 0.4)' },
+                            { offset: 1, color: 'rgba(0, 180, 220, 0)' }
+                        ])
+                    },
+                    symbol: 'none'
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        // 健康度仪表盘
+        function initHealthGaugeChart() {
+            const chart = echarts.init(document.getElementById('healthGaugeChart'));
+            const option = {
+                backgroundColor: 'transparent',
+                series: [{
+                    type: 'gauge',
+                    startAngle: 200,
+                    endAngle: -20,
+                    min: 0,
+                    max: 100,
+                    splitNumber: 10,
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                            { offset: 0, color: '#F87171' },
+                            { offset: 0.5, color: '#FBBF24' },
+                            { offset: 1, color: '#4ADE80' }
+                        ])
+                    },
+                    progress: {
+                        show: true,
+                        width: 18,
+                        roundCap: true
+                    },
+                    pointer: { show: false },
+                    axisLine: { lineStyle: { width: 18, color: [[1, 'rgba(255,255,255,0.1)']] }, roundCap: true },
+                    axisTick: { show: false },
+                    splitLine: { show: false },
+                    axisLabel: { show: false },
+                    anchor: { show: false },
+                    title: { show: false },
+                    detail: {
+                        valueAnimation: true,
+                        width: '60%',
+                        lineHeight: 40,
+                        borderRadius: 8,
+                        offsetCenter: [0, '30%'],
+                        fontSize: 42,
+                        fontWeight: 'bold',
+                        formatter: '{value}',
+                        color: '#FFFFFF'
+                    },
+                    data: [{ value: 85 }]
+                }, {
+                    type: 'gauge',
+                    startAngle: 200,
+                    endAngle: -20,
+                    min: 0,
+                    max: 100,
+                    itemStyle: { color: 'rgba(0, 180, 220, 0.3)' },
+                    progress: { show: true, width: 6, roundCap: true },
+                    pointer: { show: false },
+                    axisLine: { lineStyle: { width: 6, color: [[1, 'rgba(255,255,255,0.05)']] }, roundCap: true },
+                    axisTick: { show: false },
+                    splitLine: { show: false },
+                    axisLabel: { show: false },
+                    detail: {
+                        valueAnimation: true,
+                        width: '40%',
+                        lineHeight: 20,
+                        borderRadius: 8,
+                        offsetCenter: [0, '55%'],
+                        fontSize: 14,
+                        formatter: '健康度评分',
+                        color: '#8BA3B9'
+                    },
+                    data: [{ value: 85 }]
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        // 设备利用率热力图
+        function initUtilizationHeatmap() {
+            const chart = echarts.init(document.getElementById('utilizationHeatmap'));
+            const hours = ['00', '04', '08', '12', '16', '20'];
+            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            const data = [];
+            
+            for (let i = 0; i < days.length; i++) {
+                for (let j = 0; j < hours.length; j++) {
+                    let value;
+                    if (hours[j] === '08' || hours[j] === '12' || hours[j] === '16') {
+                        value = 60 + Math.random() * 35;
+                    } else if (hours[j] === '04') {
+                        value = 15 + Math.random() * 20;
+                    } else {
+                        value = 30 + Math.random() * 30;
+                    }
+                    if (days[i] === '周六' || days[i] === '周日') {
+                        value = value * 0.7;
+                    }
+                    data.push([j, i, Math.round(value)]);
+                }
+            }
+
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text },
+                    formatter: (p) => `${days[p.data[1]]} ${hours[p.data[0]]}:00<br/>利用率: ${p.data[2]}%`
+                },
+                grid: { top: 10, right: 60, bottom: 25, left: 50 },
+                xAxis: {
+                    type: 'category',
+                    data: hours,
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: days,
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 }
+                },
+                visualMap: {
+                    min: 0,
+                    max: 100,
+                    calculable: true,
+                    orient: 'vertical',
+                    right: 10,
+                    top: 'center',
+                    itemWidth: 12,
+                    itemHeight: 100,
+                    textStyle: { color: colors.textSecondary, fontSize: 10 },
+                    inRange: { color: ['#1B3A5F', '#00B4DC', '#4ADE80'] }
+                },
+                series: [{
+                    type: 'heatmap',
+                    data: data,
+                    emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        // 峰谷平环形图
+        function initPeakValleyDonut() {
+            const chart = echarts.init(document.getElementById('peakValleyDonut'));
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text },
+                    formatter: '{b}: {c} kWh ({d}%)'
+                },
+                legend: { show: false },
+                series: [{
+                    type: 'pie',
+                    radius: ['55%', '80%'],
+                    center: ['40%', '50%'],
+                    avoidLabelOverlap: false,
+                    label: { show: false },
+                    emphasis: {
+                        label: { show: true, fontSize: 14, fontWeight: 'bold', color: '#fff' }
+                    },
+                    data: [
+                        { value: 35, name: '峰时', itemStyle: { color: colors.danger } },
+                        { value: 44, name: '平时', itemStyle: { color: colors.warning } },
+                        { value: 21, name: '谷时', itemStyle: { color: colors.success } }
+                    ]
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        // 系统能耗堆叠柱状图
+        function initSystemConsumptionChart() {
+            const chart = echarts.init(document.getElementById('systemConsumptionChart'));
+            const days = [];
+            for (let i = 1; i <= 7; i++) days.push(`周${['日', '一', '二', '三', '四', '五', '六'][i % 7]}`);
+            
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text }
+                },
+                legend: {
+                    data: ['主机', '水泵', '冷却塔', '末端'],
+                    top: 0,
+                    textStyle: { color: colors.textSecondary, fontSize: 11 }
+                },
+                grid: { top: 35, right: 20, bottom: 25, left: 50 },
+                xAxis: {
+                    type: 'category',
+                    data: days,
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 11 }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'kWh',
+                    nameTextStyle: { color: colors.textSecondary, fontSize: 10 },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                series: [
+                    { name: '主机', type: 'bar', stack: 'total', data: [1800, 1750, 1900, 1700, 1850, 1200, 900], itemStyle: { color: colors.primary } },
+                    { name: '水泵', type: 'bar', stack: 'total', data: [450, 420, 480, 400, 460, 280, 200], itemStyle: { color: colors.success } },
+                    { name: '冷却塔', type: 'bar', stack: 'total', data: [280, 260, 300, 250, 290, 180, 120], itemStyle: { color: colors.warning } },
+                    { name: '末端', type: 'bar', stack: 'total', data: [320, 310, 340, 300, 330, 250, 180], itemStyle: { color: '#A78BFA' } }
+                ]
+            };
+            chart.setOption(option);
+        }
+
+        // 温湿度散点图
+        function initTempHumidityScatter() {
+            const chart = echarts.init(document.getElementById('tempHumidityScatter'));
+            const data = [];
+            for (let i = 0; i < 50; i++) {
+                const temp = 22 + Math.random() * 15;
+                const humidity = 40 + Math.random() * 40;
+                const power = 600 + temp * 25 + humidity * 3 + Math.random() * 100;
+                data.push([temp, humidity, power]);
+            }
+
+            const option = {
+                backgroundColor: 'transparent',
+                title: { text: '温湿度-能耗关系', textStyle: { color: colors.textSecondary, fontSize: 12 }, left: 'center', top: 5 },
+                tooltip: {
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text },
+                    formatter: (p) => `温度: ${p.data[0].toFixed(1)}°C<br/>湿度: ${p.data[1].toFixed(1)}%<br/>功率: ${p.data[2].toFixed(0)}kW`
+                },
+                grid: { top: 35, right: 15, bottom: 30, left: 50 },
+                xAxis: {
+                    type: 'value',
+                    name: '温度°C',
+                    nameTextStyle: { color: colors.textSecondary, fontSize: 10 },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '湿度%',
+                    nameTextStyle: { color: colors.textSecondary, fontSize: 10 },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+                },
+                visualMap: {
+                    min: 600,
+                    max: 1200,
+                    calculable: true,
+                    orient: 'horizontal',
+                    left: 'center',
+                    bottom: 0,
+                    itemWidth: 10,
+                    itemHeight: 60,
+                    textStyle: { color: colors.textSecondary, fontSize: 9 },
+                    inRange: { color: ['#00B4DC', '#4ADE80', '#FBBF24', '#F87171'] }
+                },
+                series: [{
+                    type: 'scatter',
+                    data: data,
+                    symbolSize: 12,
+                    itemStyle: { opacity: 0.8 }
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        // COP-负荷率关系图
+        function initCopLoadChart() {
+            const chart = echarts.init(document.getElementById('copLoadChart'));
+            const load = [];
+            const copData = [];
+            for (let i = 20; i <= 100; i += 5) {
+                load.push(i);
+                // COP随负荷变化的曲线
+                const cop = 6.5 - Math.pow((i - 60) / 30, 2) * 1.5 + Math.random() * 0.3;
+                copData.push(cop.toFixed(2));
+            }
+
+            const option = {
+                backgroundColor: 'transparent',
+                title: { text: 'COP-负荷率关系', textStyle: { color: colors.textSecondary, fontSize: 12 }, left: 'center', top: 5 },
+                tooltip: {
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text },
+                    formatter: (p) => `负荷率: ${p.data[0]}%<br/>COP: ${p.data[1]}`
+                },
+                grid: { top: 35, right: 15, bottom: 30, left: 50 },
+                xAxis: {
+                    type: 'value',
+                    name: '负荷率%',
+                    nameTextStyle: { color: colors.textSecondary, fontSize: 10 },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
+                    min: 20, max: 100
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'COP',
+                    nameTextStyle: { color: colors.textSecondary, fontSize: 10 },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
+                    min: 4, max: 7
+                },
+                series: [{
+                    type: 'line',
+                    data: load.map((l, i) => [l, parseFloat(copData[i])]),
+                    smooth: true,
+                    lineStyle: { color: colors.success, width: 3 },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(74, 222, 128, 0.3)' },
+                            { offset: 1, color: 'rgba(74, 222, 128, 0)' }
+                        ])
+                    },
+                    markArea: {
+                        silent: true,
+                        data: [[{ yAxis: 5, itemStyle: { color: 'rgba(74, 222, 128, 0.1)' } }, { yAxis: 7 }]]
+                    }
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        // 累计节能率趋势
+        function initSavingRateChart() {
+            const chart = echarts.init(document.getElementById('savingRateChart'));
+            const days = [];
+            const rate = [];
+            for (let i = 30; i > 0; i--) {
+                days.push(`${i}日`);
+                rate.push((12 + Math.random() * 10).toFixed(1));
+            }
+
+            const option = {
+                backgroundColor: 'transparent',
+                title: { text: '每日节能率趋势', textStyle: { color: colors.textSecondary, fontSize: 12 }, left: 'center', top: 5 },
+                tooltip: {
+                    backgroundColor: 'rgba(13, 27, 42, 0.95)',
+                    borderColor: colors.border,
+                    textStyle: { color: colors.text },
+                    formatter: (p) => `${p.data[0]}日<br/>节能率: ${p.data[1]}%`
+                },
+                grid: { top: 35, right: 15, bottom: 30, left: 50 },
+                xAxis: {
+                    type: 'category',
+                    data: days,
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 9, interval: 4 }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '%',
+                    nameTextStyle: { color: colors.textSecondary, fontSize: 10 },
+                    axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                    axisLabel: { color: colors.textSecondary, fontSize: 10 },
+                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
+                    min: 10, max: 25
+                },
+                series: [{
+                    type: 'bar',
+                    data: rate.map(v => ({ value: parseFloat(v), itemStyle: { color: parseFloat(v) > 18 ? colors.success : colors.primary } })),
+                    barWidth: '60%'
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        // 时间筛选按钮
+        document.querySelectorAll('.time-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 视图切换
+        document.querySelectorAll('.view-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 初始化所有图表
+        initDailyConsumptionChart();
+        initHourlyLoadChart();
+        initRealtimePowerChart();
+        initHealthGaugeChart();
+        initUtilizationHeatmap();
+        initPeakValleyDonut();
+        initSystemConsumptionChart();
+        initTempHumidityScatter();
+        initCopLoadChart();
+        initSavingRateChart();
+
+        // 响应式
+        window.addEventListener('resize', () => {
+            document.querySelectorAll('div[id$="Chart"], div[id$="Donut"], div[id$="Heatmap"], div[id$="Scatter"]').forEach(el => {
+                if (el.id && echarts.getInstanceByDom(document.getElementById(el.id.replace('Chart', '').replace('Donut', '').replace('Heatmap', '').replace('Scatter', '')))) {
+                    echarts.getInstanceByDom(document.getElementById(el.id.replace('Chart', '').replace('Donut', '').replace('Heatmap', '').replace('Scatter', '')))?.resize();
+                }
+            });
+            // 重新调整所有图表
+            echarts.getInstanceByDom(document.getElementById('dailyConsumptionChart'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('hourlyLoadChart'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('realtimePowerChart'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('healthGaugeChart'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('utilizationHeatmap'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('peakValleyDonut'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('systemConsumptionChart'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('tempHumidityScatter'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('copLoadChart'))?.resize();
+            echarts.getInstanceByDom(document.getElementById('savingRateChart'))?.resize();
+        });
+    </script>
+</body>
+</html>

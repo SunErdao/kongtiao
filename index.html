@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工商业园区空调系统效益概览</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+            background: #0A1628;
+            color: #E8E8E8;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 主容器 */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 12px;
+            padding: 12px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0A1628 0%, #0D1E33 50%, #0A1628 100%);
+        }
+
+        /* 顶部通栏 */
+        .top-bar {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding: 16px 20px;
+            background: rgba(20, 40, 70, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 180, 220, 0.2);
+        }
+
+        .kpi-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 12px 20px;
+            background: rgba(0, 30, 60, 0.5);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            background: rgba(0, 50, 100, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .kpi-card.cost { --accent-color: #00B4DC; }
+        .kpi-card.cop { --accent-color: #00D9A5; }
+        .kpi-card.saving { --accent-color: #4ADE80; }
+        .kpi-card.health { --accent-color: #FBBF24; }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #8BA3B9;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .kpi-label svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #FFFFFF;
+            letter-spacing: -1px;
+        }
+
+        .kpi-value .unit {
+            font-size: 14px;
+            font-weight: 400;
+            color: #8BA3B9;
+            margin-left: 4px;
+        }
+
+        .kpi-trend {
+            font-size: 11px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .kpi-trend.up { color: #4ADE80; }
+        .kpi-trend.down { color: #F87171; }
+
+        /* 左侧面板 */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel {
+            background: rgba(20, 40, 70, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 180, 220, 0.15);
+            padding: 16px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #00B4DC;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .panel-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            background: rgba(0, 180, 220, 0.2);
+            border-radius: 10px;
+            color: #00B4DC;
+        }
+
+        /* 负荷预测图 */
+        .chart-container {
+            height: 140px;
+            position: relative;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-grid line {
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 1;
+        }
+
+        .chart-line {
+            fill: none;
+            stroke: #00B4DC;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .chart-area {
+            fill: url(#chartGradient);
+        }
+
+        .chart-point {
+            fill: #00B4DC;
+        }
+
+        .chart-label {
+            font-size: 9px;
+            fill: #5A7A9A;
+        }
+
+        /* 节能策略卡片 */
+        .strategy-card {
+            background: rgba(0, 50, 90, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid #4ADE80;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-card:hover {
+            background: rgba(0, 70, 120, 0.5);
+        }
+
+        .strategy-card.warning {
+            border-left-color: #FBBF24;
+        }
+
+        .strategy-title {
+            font-size: 12px;
+            color: #FFFFFF;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .strategy-title svg {
+            width: 14px;
+            height: 14px;
+            color: #4ADE80;
+        }
+
+        .strategy-card.warning .strategy-title svg {
+            color: #FBBF24;
+        }
+
+        .strategy-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4ADE80;
+        }
+
+        .strategy-card.warning .strategy-value {
+            color: #FBBF24;
+        }
+
+        .strategy-time {
+            font-size: 10px;
+            color: #6B8A9A;
+            margin-top: 4px;
+        }
+
+        /* 同环比分析 */
+        .comparison-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .comparison-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: rgba(0, 30, 60, 0.4);
+            border-radius: 6px;
+        }
+
+        .comparison-label {
+            font-size: 11px;
+            color: #8BA3B9;
+        }
+
+        .comparison-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: #FFFFFF;
+        }
+
+        .comparison-change {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .comparison-change.positive {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ADE80;
+        }
+
+        .comparison-change.negative {
+            background: rgba(248, 113, 113, 0.2);
+            color: #F87171;
+        }
+
+        /* 中心拓扑图 */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .topology-panel {
+            flex: 1;
+            background: rgba(20, 40, 70, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 180, 220, 0.15);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topology-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topology-svg {
+            width: 100%;
+            height: 100%;
+            min-height: 280px;
+        }
+
+        /* 拓扑图节点 */
+        .topo-node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .topo-node:hover .node-bg {
+            filter: brightness(1.2);
+        }
+
+        .node-bg {
+            fill: rgba(0, 50, 90, 0.8);
+            stroke: var(--node-color, #00B4DC);
+            stroke-width: 2;
+            transition: all 0.3s ease;
+        }
+
+        .node-bg.running {
+            var(--node-color, #00D9A5);
+        }
+
+        .node-bg.stopped {
+            var(--node-color, #5A7A9A);
+        }
+
+        .node-bg.fault {
+            var(--node-color, #F87171);
+            animation: faultPulse 1s infinite;
+        }
+
+        @keyframes faultPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .node-icon {
+            fill: var(--node-color, #00B4DC);
+        }
+
+        .node-label {
+            font-size: 11px;
+            fill: #FFFFFF;
+            text-anchor: middle;
+        }
+
+        .node-status {
+            font-size: 9px;
+            fill: #6B8A9A;
+            text-anchor: middle;
+        }
+
+        /* 节点状态指示器 */
+        .status-dot {
+            r: 4;
+        }
+
+        .status-dot.running { fill: #4ADE80; }
+        .status-dot.stopped { fill: #5A7A9A; }
+        .status-dot.fault { fill: #F87171; }
+
+        /* 流量箭头 */
+        .flow-arrow {
+            fill: none;
+            stroke: #00B4DC;
+            stroke-width: 2;
+            opacity: 0.6;
+        }
+
+        .flow-arrow.active {
+            stroke-dasharray: 8 4;
+            animation: flowAnimation 1s linear infinite;
+        }
+
+        @keyframes flowAnimation {
+            from { stroke-dashoffset: 12; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* 右侧面板 */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 设备状态列表 */
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(0, 30, 60, 0.4);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .device-item:hover {
+            background: rgba(0, 50, 90, 0.5);
+        }
+
+        .device-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .device-status.running { background: #4ADE80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.5); }
+        .device-status.stopped { background: #5A7A9A; }
+        .device-status.fault { background: #F87171; box-shadow: 0 0 8px rgba(248, 113, 113, 0.5); animation: blink 1s infinite; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .device-info {
+            flex: 1;
+        }
+
+        .device-name {
+            font-size: 12px;
+            color: #FFFFFF;
+        }
+
+        .device-meta {
+            font-size: 10px;
+            color: #5A7A9A;
+            margin-top: 2px;
+        }
+
+        .device-load {
+            font-size: 12px;
+            font-weight: 500;
+            color: #00B4DC;
+        }
+
+        /* 成本构成环形图 */
+        .donut-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .donut-chart {
+            width: 100px;
+            height: 100px;
+        }
+
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .legend-value {
+            color: #FFFFFF;
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        /* 底部告警栏 */
+        .bottom-bar {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 12px 20px;
+            background: rgba(20, 40, 70, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .alert-icon {
+            width: 20px;
+            height: 20px;
+            color: #F87171;
+        }
+
+        .alert-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: #F87171;
+        }
+
+        .alert-label {
+            font-size: 12px;
+            color: #8BA3B9;
+        }
+
+        .alert-list {
+            display: flex;
+            gap: 16px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(248, 113, 113, 0.15);
+            border-radius: 6px;
+            white-space: nowrap;
+            animation: alertPulse 2s infinite;
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { background: rgba(248, 113, 113, 0.15); }
+            50% { background: rgba(248, 113, 113, 0.25); }
+        }
+
+        .alert-device {
+            font-size: 12px;
+            color: #FFFFFF;
+        }
+
+        .alert-code {
+            font-size: 11px;
+            padding: 2px 6px;
+            background: #F87171;
+            color: #FFFFFF;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        /* 时间显示 */
+        .time-display {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .time-current {
+            font-size: 14px;
+            color: #00B4DC;
+            font-weight: 500;
+        }
+
+        .time-date {
+            font-size: 11px;
+            color: #5A7A9A;
+        }
+
+        /* 标题栏 */
+        .main-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+            text-align: center;
+            padding: 8px;
+            letter-spacing: 2px;
+        }
+
+        .sub-title {
+            font-size: 11px;
+            color: #5A7A9A;
+            text-align: center;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 顶部核心指标看板 -->
+        <div class="top-bar">
+            <div class="kpi-card cost">
+                <div class="kpi-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    今日运行成本
+                </div>
+                <div class="kpi-value">¥12,580<span class="unit">元</span></div>
+                <div class="kpi-trend down">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 4l-8 8h6v8h4v-8h6z"/>
+                    </svg>
+                    较昨日 -8.2%
+                </div>
+            </div>
+            <div class="kpi-card cop">
+                <div class="kpi-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    实时能效系数 COP
+                </div>
+                <div class="kpi-value">5.2<span class="unit">kW/kW</span></div>
+                <div class="kpi-trend up">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 20l8-8h-6V4h-4v8H4z"/>
+                    </svg>
+                    优秀等级
+                </div>
+            </div>
+            <div class="kpi-card saving">
+                <div class="kpi-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    今日节约成本
+                </div>
+                <div class="kpi-value">¥2,340<span class="unit">元</span></div>
+                <div class="kpi-trend up">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 20l8-8h-6V4h-4v8H4z"/>
+                    </svg>
+                    智能策略贡献
+                </div>
+            </div>
+            <div class="kpi-card health">
+                <div class="kpi-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    系统健康度
+                </div>
+                <div class="kpi-value">92<span class="unit">%</span></div>
+                <div class="kpi-trend up">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 20l8-8h-6V4h-4v8H4z"/>
+                    </svg>
+                    运行正常
+                </div>
+            </div>
+        </div>
+
+        <!-- 左侧面板 -->
+        <div class="left-panel">
+            <!-- 负荷预测 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3v18h18"/>
+                            <path d="M18 9l-5 5-4-4-6 6"/>
+                        </svg>
+                        负荷预测曲线
+                    </div>
+                    <span class="panel-badge">未来24h</span>
+                </div>
+                <div class="chart-container">
+                    <svg class="chart-svg" viewBox="0 0 300 120">
+                        <defs>
+                            <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00B4DC;stop-opacity:0.3"/>
+                                <stop offset="100%" style="stop-color:#00B4DC;stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- 网格线 -->
+                        <g class="chart-grid">
+                            <line x1="40" y1="20" x2="290" y2="20"/>
+                            <line x1="40" y1="45" x2="290" y2="45"/>
+                            <line x1="40" y1="70" x2="290" y2="70"/>
+                            <line x1="40" y1="95" x2="290" y2="95"/>
+                        </g>
+                        <!-- 面积 -->
+                        <path class="chart-area" d="M40,85 L80,65 L120,75 L160,50 L200,55 L240,35 L280,45 L290,40 L290,110 L40,110 Z"/>
+                        <!-- 折线 -->
+                        <path class="chart-line" d="M40,85 L80,65 L120,75 L160,50 L200,55 L240,35 L280,45 L290,40"/>
+                        <!-- 数据点 -->
+                        <circle class="chart-point" cx="40" cy="85" r="3"/>
+                        <circle class="chart-point" cx="80" cy="65" r="3"/>
+                        <circle class="chart-point" cx="120" cy="75" r="3"/>
+                        <circle class="chart-point" cx="160" cy="50" r="3"/>
+                        <circle class="chart-point" cx="200" cy="55" r="3"/>
+                        <circle class="chart-point" cx="240" cy="35" r="3"/>
+                        <circle class="chart-point" cx="280" cy="45" r="3"/>
+                        <circle class="chart-point" cx="290" cy="40" r="4" fill="#4ADE80"/>
+                        <!-- 标签 -->
+                        <text class="chart-label" x="40" y="115">00:00</text>
+                        <text class="chart-label" x="120" y="115">06:00</text>
+                        <text class="chart-label" x="200" y="115">12:00</text>
+                        <text class="chart-label" x="280" y="115">18:00</text>
+                        <text class="chart-label" x="40" y="18">高峰</text>
+                        <text class="chart-label" x="40" y="98">低谷</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 节能策略 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                        智能策略建议
+                    </div>
+                </div>
+                <div class="strategy-card">
+                    <div class="strategy-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/>
+                        </svg>
+                        建议开启夜间模式
+                    </div>
+                    <div class="strategy-value">¥680</div>
+                    <div class="strategy-time">预计节省电费 | 22:00-06:00</div>
+                </div>
+                <div class="strategy-card warning">
+                    <div class="strategy-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        尖峰电价预警
+                    </div>
+                    <div class="strategy-value">14:00-17:00</div>
+                    <div class="strategy-time">建议降低主机负载率 10%</div>
+                </div>
+            </div>
+
+            <!-- 同环比分析 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="9" y1="21" x2="9" y2="9"/>
+                        </svg>
+                        月度同环比
+                    </div>
+                </div>
+                <div class="comparison-list">
+                    <div class="comparison-item">
+                        <span class="comparison-label">本月 vs 上月</span>
+                        <div>
+                            <span class="comparison-value">¥38.2万</span>
+                            <span class="comparison-change positive">↓12.5%</span>
+                        </div>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">本月 vs 去年同期</span>
+                        <div>
+                            <span class="comparison-value">¥38.2万</span>
+                            <span class="comparison-change positive">↓18.3%</span>
+                        </div>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">年度累计节能</span>
+                        <div>
+                            <span class="comparison-value">¥86.5万</span>
+                            <span class="comparison-change positive">↑15.2%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中心拓扑图 -->
+        <div class="center-panel">
+            <div class="topology-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v10"/>
+                            <path d="M1 12h6m6 0h10"/>
+                        </svg>
+                        系统逻辑拓扑
+                    </div>
+                    <span class="panel-badge">实时状态</span>
+                </div>
+                <div class="topology-container">
+                    <svg class="topology-svg" viewBox="0 0 500 280">
+                        <!-- 连接线 -->
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00B4DC"/>
+                            </marker>
+                            <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#00B4DC;stop-opacity:0.2"/>
+                                <stop offset="50%" style="stop-color:#00B4DC;stop-opacity:0.8"/>
+                                <stop offset="100%" style="stop-color:#00B4DC;stop-opacity:0.2"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- 冷源到输配 -->
+                        <path class="flow-arrow active" d="M130,80 Q200,80 200,140" marker-end="url(#arrowhead)"/>
+                        <path class="flow-arrow active" d="M130,120 Q200,120 200,140" marker-end="url(#arrowhead)"/>
+
+                        <!-- 输配到末端 -->
+                        <path class="flow-arrow active" d="M250,150 Q300,150 300,220" marker-end="url(#arrowhead)"/>
+                        <path class="flow-arrow active" d="M290,150 Q340,150 340,220" marker-end="url(#arrowhead)"/>
+                        <path class="flow-arrow active" d="M330,150 Q380,150 380,220" marker-end="url(#arrowhead)"/>
+
+                        <!-- 冷源（主机） -->
+                        <g class="topo-node" transform="translate(50, 50)">
+                            <rect class="node-bg" x="0" y="0" width="80" height="70" rx="8" style="--node-color: #00D9A5"/>
+                            <svg x="20" y="12" width="40" height="30" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="1.5">
+                                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                <path d="M6 8h12M6 12h12M6 16h8"/>
+                            </svg>
+                            <text class="node-label" x="40" y="52">主机 A</text>
+                            <text class="node-status" x="40" y="64">负载 75% | 运行中</text>
+                            <circle class="status-dot running" cx="70" cy="10"/>
+                        </g>
+
+                        <!-- 主机B -->
+                        <g class="topo-node" transform="translate(50, 140)">
+                            <rect class="node-bg" x="0" y="0" width="80" height="70" rx="8" style="--node-color: #00D9A5"/>
+                            <svg x="20" y="12" width="40" height="30" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="1.5">
+                                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                <path d="M6 8h12M6 12h12M6 16h8"/>
+                            </svg>
+                            <text class="node-label" x="40" y="52">主机 B</text>
+                            <text class="node-status" x="40" y="64">负载 60% | 运行中</text>
+                            <circle class="status-dot running" cx="70" cy="10"/>
+                        </g>
+
+                        <!-- 输配系统 -->
+                        <g class="topo-node" transform="translate(200, 120)">
+                            <rect class="node-bg" x="0" y="0" width="100" height="60" rx="8" style="--node-color: #00B4DC"/>
+                            <svg x="30" y="10" width="40" height="25" viewBox="0 0 24 24" fill="none" stroke="#00B4DC" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 3v6l4 2"/>
+                            </svg>
+                            <text class="node-label" x="50" y="42">水泵组</text>
+                            <text class="node-status" x="50" y="54">3台运行 | 变频控制</text>
+                            <circle class="status-dot running" cx="90" cy="10"/>
+                        </g>
+
+                        <!-- 区域A -->
+                        <g class="topo-node" transform="translate(250, 200)">
+                            <rect class="node-bg" x="0" y="0" width="70" height="65" rx="8" style="--node-color: #4ADE80"/>
+                            <svg x="18" y="10" width="34" height="25" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="1.5">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                                <polyline points="9 22 9 12 15 12 15 22"/>
+                            </svg>
+                            <text class="node-label" x="35" y="47">A区</text>
+                            <text class="node-status" x="35" y="59">温度 24°C | 正常</text>
+                            <circle class="status-dot running" cx="60" cy="10"/>
+                        </g>
+
+                        <!-- 区域B -->
+                        <g class="topo-node" transform="translate(330, 200)">
+                            <rect class="node-bg" x="0" y="0" width="70" height="65" rx="8" style="--node-color: #4ADE80"/>
+                            <svg x="18" y="10" width="34" height="25" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="1.5">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                                <polyline points="9 22 9 12 15 12 15 22"/>
+                            </svg>
+                            <text class="node-label" x="35" y="47">B区</text>
+                            <text class="node-status" x="35" y="59">温度 25°C | 正常</text>
+                            <circle class="status-dot running" cx="60" cy="10"/>
+                        </g>
+
+                        <!-- 区域C - 故障状态 -->
+                        <g class="topo-node" transform="translate(410, 200)">
+                            <rect class="node-bg" x="0" y="0" width="70" height="65" rx="8" style="--node-color: #F87171"/>
+                            <svg x="18" y="10" width="34" height="25" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="1.5">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                                <polyline points="9 22 9 12 15 12 15 22"/>
+                            </svg>
+                            <text class="node-label" x="35" y="47">C区</text>
+                            <text class="node-status" x="35" y="59" fill="#F87171">通讯中断</text>
+                            <circle class="status-dot fault" cx="60" cy="10"/>
+                        </g>
+
+                        <!-- 图例 -->
+                        <g transform="translate(20, 250)">
+                            <circle cx="0" cy="0" r="4" fill="#4ADE80"/>
+                            <text x="10" y="4" font-size="9" fill="#8BA3B9">运行</text>
+                            <circle cx="50" cy="0" r="4" fill="#5A7A9A"/>
+                            <text x="60" y="4" font-size="9" fill="#8BA3B9">停止</text>
+                            <circle cx="100" cy="0" r="4" fill="#F87171"/>
+                            <text x="110" y="4" font-size="9" fill="#8BA3B9">故障</text>
+                            <line x1="160" y1="0" x2="190" y2="0" stroke="#00B4DC" stroke-width="2" stroke-dasharray="4 2"/>
+                            <text x="200" y="4" font-size="9" fill="#8BA3B9">数据流向</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧面板 -->
+        <div class="right-panel">
+            <!-- 设备状态 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                        设备运行状态
+                    </div>
+                    <span class="panel-badge">8台在线</span>
+                </div>
+                <div class="device-list">
+                    <div class="device-item">
+                        <div class="device-status running"></div>
+                        <div class="device-info">
+                            <div class="device-name">冷水机组 CH-01</div>
+                            <div class="device-meta">主机 A | 螺杆式</div>
+                        </div>
+                        <div class="device-load">75%</div>
+                    </div>
+                    <div class="device-item">
+                        <div class="device-status running"></div>
+                        <div class="device-info">
+                            <div class="device-name">冷水机组 CH-02</div>
+                            <div class="device-meta">主机 B | 螺杆式</div>
+                        </div>
+                        <div class="device-load">60%</div>
+                    </div>
+                    <div class="device-item">
+                        <div class="device-status running"></div>
+                        <div class="device-info">
+                            <div class="device-name">冷却水泵 P-01</div>
+                            <div class="device-meta">变频 | 22kW</div>
+                        </div>
+                        <div class="device-load">68%</div>
+                    </div>
+                    <div class="device-item">
+                        <div class="device-status stopped"></div>
+                        <div class="device-info">
+                            <div class="device-name">冷却水泵 P-02</div>
+                            <div class="device-meta">变频 | 22kW</div>
+                        </div>
+                        <div class="device-load">0%</div>
+                    </div>
+                    <div class="device-item">
+                        <div class="device-status fault"></div>
+                        <div class="device-info">
+                            <div class="device-name">空调末端 C区</div>
+                            <div class="device-meta">AHU-03 | 通讯异常</div>
+                        </div>
+                        <div class="device-load" style="color:#F87171">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成本构成 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 2a10 10 0 0 1 0 20"/>
+                            <path d="M12 2v20"/>
+                        </svg>
+                        成本构成分析
+                    </div>
+                </div>
+                <div class="donut-container">
+                    <svg class="donut-chart" viewBox="0 0 100 100">
+                        <!-- 电费 65% -->
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#00B4DC" stroke-width="12"
+                                stroke-dasharray="163.36 251.33" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+                        <!-- 维护 20% -->
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#4ADE80" stroke-width="12"
+                                stroke-dasharray="50.27 251.33" stroke-dashoffset="-163.36" transform="rotate(-90 50 50)"/>
+                        <!-- 水费 15% -->
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="12"
+                                stroke-dasharray="37.7 251.33" stroke-dashoffset="-213.63" transform="rotate(-90 50 50)"/>
+                        <!-- 中心 -->
+                        <text x="50" y="46" text-anchor="middle" font-size="14" font-weight="600" fill="#FFFFFF">¥12.5万</text>
+                        <text x="50" y="60" text-anchor="middle" font-size="8" fill="#8BA3B9">本月总成本</text>
+                    </svg>
+                    <div class="donut-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:#00B4DC"></div>
+                            <span>电费</span>
+                            <span class="legend-value">65%</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:#4ADE80"></div>
+                            <span>维护</span>
+                            <span class="legend-value">20%</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:#FBBF24"></div>
+                            <span>水费</span>
+                            <span class="legend-value">15%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 环境参数 -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                        </svg>
+                        环境参数
+                    </div>
+                </div>
+                <div class="comparison-list">
+                    <div class="comparison-item">
+                        <span class="comparison-label">室外温度</span>
+                        <span class="comparison-value" style="color:#FBBF24">32°C</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">室外湿度</span>
+                        <span class="comparison-value">65%</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">实时电价</span>
+                        <span class="comparison-value" style="color:#F87171">¥1.28/kWh</span>
+                    </div>
+                    <div class="comparison-item">
+                        <span class="comparison-label">当前时段</span>
+                        <span class="comparison-value" style="color:#FBBF24">尖峰</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部告警栏 -->
+        <div class="bottom-bar">
+            <div class="alert-header">
+                <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span class="alert-count">2</span>
+                <span class="alert-label">条未处理故障</span>
+            </div>
+            <div class="alert-list">
+                <div class="alert-item">
+                    <span class="alert-device">C区 AHU-03</span>
+                    <span class="alert-code">E-104</span>
+                </div>
+                <div class="alert-item">
+                    <span class="alert-device">B区 新风机组</span>
+                    <span class="alert-code">W-021</span>
+                </div>
+            </div>
+            <div class="time-display">
+                <div class="time-current" id="currentTime">12:00:00</div>
+                <div class="time-date">2026年4月16日</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 模拟数据更新
+        function animateValue(element, start, end, duration) {
+            const range = end - start;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const current = start + (range * easeProgress);
+                element.textContent = current.toFixed(1);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+    </script>
+</body>
+</html>
