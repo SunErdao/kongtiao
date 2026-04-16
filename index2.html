@@ -5,391 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>空调运营图表分析</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0D1B2A;
-            color: #E0E0E0;
-            min-height: 100vh;
-        }
-
-        /* 头部导航 */
-        .header {
-            display: flex;
-            align-items: center;
-            padding: 16px 24px;
-            background: linear-gradient(135deg, #1B3A5F 0%, #0D1B2A 100%);
-            border-bottom: 1px solid rgba(0, 180, 220, 0.2);
-            gap: 20px;
-        }
-
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: rgba(0, 180, 220, 0.15);
-            border: 1px solid rgba(0, 180, 220, 0.3);
-            border-radius: 6px;
-            color: #00B4DC;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .back-btn:hover {
-            background: rgba(0, 180, 220, 0.25);
-        }
-
-        .back-btn svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .page-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #FFFFFF;
-            flex: 1;
-        }
-
-        .time-filter {
-            display: flex;
-            gap: 8px;
-        }
-
-        .time-btn {
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            color: #8BA3B9;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .time-btn:hover {
-            background: rgba(0, 180, 220, 0.1);
-            border-color: rgba(0, 180, 220, 0.3);
-        }
-
-        .time-btn.active {
-            background: rgba(0, 180, 220, 0.2);
-            border-color: #00B4DC;
-            color: #00B4DC;
-        }
-
-        .refresh-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: rgba(0, 180, 220, 0.15);
-            border: 1px solid rgba(0, 180, 220, 0.3);
-            border-radius: 6px;
-            color: #00B4DC;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .refresh-btn:hover {
-            background: rgba(0, 180, 220, 0.25);
-        }
-
-        .refresh-btn svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* 主内容区 */
-        .main-content {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            grid-template-rows: auto auto auto;
-            gap: 20px;
-        }
-
-        /* 通用面板 */
-        .panel {
-            background: rgba(20, 40, 70, 0.4);
-            border-radius: 12px;
-            border: 1px solid rgba(0, 180, 220, 0.15);
-            padding: 20px;
-        }
-
-        .panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .panel-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: #00B4DC;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .panel-title svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .panel-badge {
-            font-size: 10px;
-            padding: 4px 10px;
-            background: rgba(0, 180, 220, 0.15);
-            border-radius: 12px;
-            color: #00B4DC;
-        }
-
-        .data-tag {
-            font-size: 10px;
-            padding: 2px 6px;
-            background: rgba(139, 163, 185, 0.2);
-            border-radius: 4px;
-            color: #8BA3B9;
-            margin-left: 8px;
-        }
-
-        /* 核心图表区 */
-        .core-charts {
-            grid-column: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .charts-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .chart-container {
-            height: 280px;
-        }
-
-        .chart-container.small {
-            height: 240px;
-        }
-
-        /* 运营健康度 */
-        .health-panel {
-            grid-column: 2;
-            grid-row: 1 / 3;
-        }
-
-        .health-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .gauge-container {
-            height: 200px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .mode-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            background: rgba(0, 217, 165, 0.2);
-            border: 1px solid #00D9A5;
-            border-radius: 20px;
-            color: #00D9A5;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .mode-tag.energy-saving {
-            background: rgba(74, 222, 128, 0.2);
-            border-color: #4ADE80;
-            color: #4ADE80;
-        }
-
-        .mode-tag.night {
-            background: rgba(139, 163, 185, 0.2);
-            border-color: #8BA3B9;
-            color: #8BA3B9;
-        }
-
-        /* 能耗构成 */
-        .consumption-panel {
-            grid-column: 1 / -1;
-        }
-
-        .consumption-content {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-        }
-
-        .donut-container {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-        }
-
-        .donut-chart {
-            width: 180px;
-            height: 180px;
-        }
-
-        .donut-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-        }
-
-        .legend-label {
-            font-size: 13px;
-            color: #8BA3B9;
-            flex: 1;
-        }
-
-        .legend-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #FFFFFF;
-        }
-
-        .legend-percent {
-            font-size: 11px;
-            color: #8BA3B9;
-            margin-left: 8px;
-        }
-
-        /* 关联分析 */
-        .correlation-panel {
-            grid-column: 1 / -1;
-        }
-
-        .correlation-content {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .stat-card {
-            background: rgba(0, 30, 60, 0.5);
-            border-radius: 10px;
-            padding: 16px;
-            border-left: 3px solid var(--accent-color);
-        }
-
-        .stat-card.green { --accent-color: #4ADE80; }
-        .stat-card.blue { --accent-color: #00B4DC; }
-        .stat-card.yellow { --accent-color: #FBBF24; }
-        .stat-card.red { --accent-color: #F87171; }
-
-        .stat-label {
-            font-size: 11px;
-            color: #8BA3B9;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #FFFFFF;
-        }
-
-        .stat-value .unit {
-            font-size: 14px;
-            font-weight: 400;
-            color: #8BA3B9;
-        }
-
-        .stat-trend {
-            font-size: 11px;
-            margin-top: 6px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .stat-trend.up { color: #4ADE80; }
-        .stat-trend.down { color: #F87171; }
-
-        /* 设备利用率热力图 */
-        .heatmap-container {
-            height: 180px;
-        }
-
-        /* 响应式 */
-        @media (max-width: 1200px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            .health-panel {
-                grid-column: 1;
-                grid-row: auto;
-            }
-            .consumption-content {
-                grid-template-columns: 1fr;
-            }
-            .correlation-content {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* 视图切换 */
-        .view-tabs {
-            display: flex;
-            gap: 8px;
-            margin-left: auto;
-        }
-
-        .view-tab {
-            padding: 6px 14px;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            color: #8BA3B9;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .view-tab:hover {
-            background: rgba(0, 180, 220, 0.1);
-        }
-
-        .view-tab.active {
-            background: rgba(0, 180, 220, 0.2);
-            border-color: #00B4DC;
-            color: #00B4DC;
-        }
-    </style>
 </head>
 <body>
     <!-- 头部导航 -->
@@ -483,7 +100,7 @@
             </div>
             <div class="health-content">
                 <div class="gauge-container" id="healthGaugeChart"></div>
-                <div style="text-align: center;">
+                <div class="text-center">
                     <span class="mode-tag energy-saving">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
@@ -509,24 +126,24 @@
             <div class="consumption-content">
                 <!-- 峰谷平电量占比 -->
                 <div>
-                    <div style="font-size: 12px; color: #8BA3B9; margin-bottom: 12px;">峰谷平电量占比</div>
+                    <div class="consumption-subtitle">峰谷平电量占比</div>
                     <div class="donut-container">
                         <div class="donut-chart" id="peakValleyDonut"></div>
                         <div class="donut-legend">
                             <div class="legend-item">
-                                <div class="legend-dot" style="background: #F87171"></div>
+                                <div class="legend-dot color-danger"></div>
                                 <span class="legend-label">峰时</span>
                                 <span class="legend-value">1,240</span>
                                 <span class="legend-percent">35%</span>
                             </div>
                             <div class="legend-item">
-                                <div class="legend-dot" style="background: #FBBF24"></div>
+                                <div class="legend-dot color-warning"></div>
                                 <span class="legend-label">平时</span>
                                 <span class="legend-value">1,560</span>
                                 <span class="legend-percent">44%</span>
                             </div>
                             <div class="legend-item">
-                                <div class="legend-dot" style="background: #4ADE80"></div>
+                                <div class="legend-dot color-success"></div>
                                 <span class="legend-label">谷时</span>
                                 <span class="legend-value">756</span>
                                 <span class="legend-percent">21%</span>
@@ -535,7 +152,7 @@
                     </div>
                 </div>
                 <!-- 系统能耗占比 -->
-                <div id="systemConsumptionChart" style="height: 200px;"></div>
+                <div id="systemConsumptionChart" class="chart-box"></div>
             </div>
         </div>
 
@@ -553,13 +170,13 @@
             </div>
             <div class="correlation-content">
                 <!-- 温湿度-能耗散点 -->
-                <div id="tempHumidityScatter" style="height: 220px;"></div>
+                <div id="tempHumidityScatter" class="chart-box tall"></div>
                 <!-- COP-负荷率 -->
-                <div id="copLoadChart" style="height: 220px;"></div>
+                <div id="copLoadChart" class="chart-box tall"></div>
                 <!-- 累计节能率趋势 -->
-                <div id="savingRateChart" style="height: 220px;"></div>
+                <div id="savingRateChart" class="chart-box tall"></div>
                 <!-- 节能统计卡片 -->
-                <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="correlation-card">
                     <div class="stat-card green">
                         <div class="stat-label">本月累计节能</div>
                         <div class="stat-value">¥42,580<span class="unit">元</span></div>
