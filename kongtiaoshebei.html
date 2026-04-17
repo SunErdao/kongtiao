@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空调设备详情</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header class="detail-header">
+        <button class="back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            返回设备列表
+        </button>
+        <h1 class="page-title">空调设备详情</h1>
+        <div class="header-actions">
+            <div class="device-type-select">
+                <label>设备类型：</label>
+                <select>
+                    <option value="chiller">冷水机组</option>
+                    <option value="cooling-tower">冷却塔</option>
+                    <option value="pump">水泵</option>
+                    <option value="ahu">空气处理机组</option>
+                    <option value="fcu">风机盘管</option>
+                </select>
+            </div>
+            <span class="last-update">最后更新：<span id="lastUpdateTime">2026-04-17 11:26:00</span></span>
+            <button class="refresh-btn" onclick="refreshData()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                </svg>
+                刷新数据
+            </button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="detail-content">
+        <!-- 头部信息区 -->
+        <section class="info-section">
+            <div class="device-info-card">
+                <div class="device-info-header">
+                    <div class="device-title">
+                        <h2>主机 A1</h2>
+                        <span class="device-status-badge running">运行中</span>
+                    </div>
+                    <div class="device-quick-stats">
+                        <div class="quick-stat">
+                            <span class="stat-label">今日能耗</span>
+                            <span class="stat-value">1,258 <small>kWh</small></span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="stat-label">累计运行时长</span>
+                            <span class="stat-value">4,520 <small>小时</small></span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="stat-label">当前 COP</span>
+                            <span class="stat-value cop">5.8</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="device-info-grid">
+                    <div class="info-item">
+                        <span class="info-label">设备编号</span>
+                        <span class="info-value">HVAC-CH-001</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">设备类型</span>
+                        <span class="info-value">螺杆式冷水机组</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">品牌型号</span>
+                        <span class="info-value">开利 30XA</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">安装位置</span>
+                        <span class="info-value">园区 A栋 地下一层</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">责任人</span>
+                        <span class="info-value">张工</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">投运日期</span>
+                        <span class="info-value">2022-06-15</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">运行模式</span>
+                        <span class="info-value"><span class="mode-tag energy-saving">节能模式</span></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">设备状态</span>
+                        <span class="info-value"><span class="status-indicator online">在线</span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 实时监控区 -->
+        <section class="monitor-section">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        实时监控
+                    </h3>
+                    <div class="panel-actions">
+                        <button class="control-btn start" onclick="confirmOperation('启动')">启动</button>
+                        <button class="control-btn stop" onclick="confirmOperation('停止')">停止</button>
+                        <button class="control-btn mode" onclick="toggleMode()">切换模式</button>
+                    </div>
+                </div>
+                <div class="monitor-content">
+                    <div class="gauge-grid">
+                        <div class="gauge-card">
+                            <div class="gauge-container-sm">
+                                <div id="gauge-temp" class="gauge-chart"></div>
+                            </div>
+                            <div class="gauge-info">
+                                <span class="gauge-label">出水温度</span>
+                                <span class="gauge-value">7.2 <small>°C</small></span>
+                                <span class="gauge-range normal">正常 (6-10°C)</span>
+                            </div>
+                        </div>
+                        <div class="gauge-card">
+                            <div class="gauge-container-sm">
+                                <div id="gauge-pressure" class="gauge-chart"></div>
+                            </div>
+                            <div class="gauge-info">
+                                <span class="gauge-label">冷凝压力</span>
+                                <span class="gauge-value warning">9.8 <small>bar</small></span>
+                                <span class="gauge-range warning">偏高 (≤9.5)</span>
+                            </div>
+                        </div>
+                        <div class="gauge-card">
+                            <div class="gauge-container-sm">
+                                <div id="gauge-current" class="gauge-chart"></div>
+                            </div>
+                            <div class="gauge-info">
+                                <span class="gauge-label">运行电流</span>
+                                <span class="gauge-value">85.3 <small>A</small></span>
+                                <span class="gauge-range normal">正常 (≤100A)</span>
+                            </div>
+                        </div>
+                        <div class="gauge-card">
+                            <div class="gauge-container-sm">
+                                <div id="gauge-frequency" class="gauge-chart"></div>
+                            </div>
+                            <div class="gauge-info">
+                                <span class="gauge-label">运行频率</span>
+                                <span class="gauge-value">48.5 <small>Hz</small></span>
+                                <span class="gauge-range normal">正常 (45-55Hz)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="status-indicators">
+                        <h4>组件状态</h4>
+                        <div class="indicator-grid">
+                            <div class="indicator-item">
+                                <span class="indicator-dot running"></span>
+                                <span class="indicator-name">压缩机 A</span>
+                                <span class="indicator-status">运行</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="indicator-dot running"></span>
+                                <span class="indicator-name">压缩机 B</span>
+                                <span class="indicator-status">运行</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="indicator-dot running"></span>
+                                <span class="indicator-name">冷凝器风扇</span>
+                                <span class="indicator-status">运行</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="indicator-dot running"></span>
+                                <span class="indicator-name">电子膨胀阀</span>
+                                <span class="indicator-status">开启 65%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="realtime-chart">
+                        <h4>实时趋势（最近1小时）</h4>
+                        <div id="realtimeChart" class="chart-container tall"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 历史数据区 -->
+        <section class="history-section">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3v18h18"/>
+                            <path d="M18 17V9M13 17V5M8 17v-3"/>
+                        </svg>
+                        历史数据
+                    </h3>
+                    <div class="time-filter">
+                        <button class="time-btn" onclick="setHistoryRange('1h')">近1小时</button>
+                        <button class="time-btn active" onclick="setHistoryRange('1d')">近1天</button>
+                        <button class="time-btn" onclick="setHistoryRange('1w')">近1周</button>
+                        <button class="time-btn" onclick="setHistoryRange('1m')">近1月</button>
+                        <button class="time-btn">自定义</button>
+                    </div>
+                </div>
+                <div class="history-content">
+                    <div class="history-chart">
+                        <div id="historyChart" class="chart-container tall"></div>
+                    </div>
+                    <div class="history-table-container">
+                        <h4>历史数据明细</h4>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>出水温度 (°C)</th>
+                                    <th>冷凝压力 (bar)</th>
+                                    <th>运行电流 (A)</th>
+                                    <th>COP</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2026-04-17 11:00</td>
+                                    <td>7.2</td>
+                                    <td class="warning">9.8</td>
+                                    <td>85.3</td>
+                                    <td class="success">5.8</td>
+                                    <td><a href="#" class="table-link">详情</a></td>
+                                </tr>
+                                <tr>
+                                    <td>2026-04-17 10:45</td>
+                                    <td>7.1</td>
+                                    <td class="warning">9.7</td>
+                                    <td>84.8</td>
+                                    <td class="success">5.9</td>
+                                    <td><a href="#" class="table-link">详情</a></td>
+                                </tr>
+                                <tr>
+                                    <td>2026-04-17 10:30</td>
+                                    <td>7.0</td>
+                                    <td>9.4</td>
+                                    <td>83.5</td>
+                                    <td class="success">6.0</td>
+                                    <td><a href="#" class="table-link">详情</a></td>
+                                </tr>
+                                <tr>
+                                    <td>2026-04-17 10:15</td>
+                                    <td>7.3</td>
+                                    <td>9.3</td>
+                                    <td>82.1</td>
+                                    <td class="success">5.9</td>
+                                    <td><a href="#" class="table-link">详情</a></td>
+                                </tr>
+                                <tr>
+                                    <td>2026-04-17 10:00</td>
+                                    <td>7.5</td>
+                                    <td>9.2</td>
+                                    <td>80.5</td>
+                                    <td class="success">5.8</td>
+                                    <td><a href="#" class="table-link">详情</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="table-footer">
+                            <span>共 120 条记录</span>
+                            <div class="pagination">
+                                <button class="page-btn" disabled>上一页</button>
+                                <span class="page-info">1/12</span>
+                                <button class="page-btn">下一页</button>
+                            </div>
+                            <button class="export-btn">导出 Excel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 报警管理区 -->
+        <section class="alarm-section">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        报警管理
+                    </h3>
+                    <div class="panel-badge danger">2 条未处理</div>
+                </div>
+                <div class="alarm-content">
+                    <div class="alarm-tabs">
+                        <button class="alarm-tab active" onclick="switchAlarmTab('current')">当前报警</button>
+                        <button class="alarm-tab" onclick="switchAlarmTab('history')">历史记录</button>
+                    </div>
+                    <div class="alarm-list" id="currentAlarmList">
+                        <div class="alarm-item urgent">
+                            <div class="alarm-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                            </div>
+                            <div class="alarm-info">
+                                <div class="alarm-header">
+                                    <span class="alarm-type">冷凝压力过高</span>
+                                    <span class="alarm-status unprocessed">未处理</span>
+                                </div>
+                                <div class="alarm-detail">
+                                    <span>当前值：9.8 bar</span>
+                                    <span>阈值：9.5 bar</span>
+                                    <span>超标：0.3 bar</span>
+                                </div>
+                                <div class="alarm-time">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    2026-04-17 10:30:00 (已持续 56 分钟)
+                                </div>
+                            </div>
+                            <div class="alarm-actions">
+                                <button class="alarm-btn confirm" onclick="handleAlarm('confirm')">确认</button>
+                                <button class="alarm-btn clear" onclick="handleAlarm('clear')">清除</button>
+                            </div>
+                        </div>
+                        <div class="alarm-item">
+                            <div class="alarm-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                            </div>
+                            <div class="alarm-info">
+                                <div class="alarm-header">
+                                    <span class="alarm-type">压缩机排气温度高</span>
+                                    <span class="alarm-status unprocessed">未处理</span>
+                                </div>
+                                <div class="alarm-detail">
+                                    <span>当前值：88°C</span>
+                                    <span>阈值：85°C</span>
+                                    <span>超标：3°C</span>
+                                </div>
+                                <div class="alarm-time">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    2026-04-17 09:15:00 (已持续 111 分钟)
+                                </div>
+                            </div>
+                            <div class="alarm-actions">
+                                <button class="alarm-btn confirm" onclick="handleAlarm('confirm')">确认</button>
+                                <button class="alarm-btn clear" onclick="handleAlarm('clear')">清除</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alarm-list hidden" id="historyAlarmList">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>报警类型</th>
+                                    <th>发生时间</th>
+                                    <th>恢复时间</th>
+                                    <th>持续时长</th>
+                                    <th>处理状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>冷冻水流量低</td>
+                                    <td>2026-04-15 14:23</td>
+                                    <td>2026-04-15 14:35</td>
+                                    <td>12 分钟</td>
+                                    <td><span class="status-tag recovered">已恢复</span></td>
+                                    <td><a href="#" class="table-link">详情</a></td>
+                                </tr>
+                                <tr>
+                                    <td>冷冻水出水温度传感器故障</td>
+                                    <td>2026-04-12 08:00</td>
+                                    <td>2026-04-12 10:30</td>
+                                    <td>2小时30分</td>
+                                    <td><span class="status-tag confirmed">已确认</span></td>
+                                    <td><a href="#" class="table-link">详情</a></td>
+                                </tr>
+                                <tr>
+                                    <td>冷却水温度异常</td>
+                                    <td>2026-04-08 16:45</td>
+                                    <td>2026-04-08 17:10</td>
+                                    <td>25 分钟</td>
+                                    <td><span class="status-tag recovered">已恢复</span></td>
+                                    <td><a href="#" class="table-link">详情</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 维护管理区 -->
+        <section class="maintenance-section">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                        维护管理
+                    </h3>
+                    <button class="add-btn" onclick="addMaintenance()">新增维护计划</button>
+                </div>
+                <div class="maintenance-content">
+                    <div class="maintenance-plans">
+                        <h4>维护计划</h4>
+                        <div class="plan-list">
+                            <div class="plan-item">
+                                <div class="plan-icon monthly">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                </div>
+                                <div class="plan-info">
+                                    <span class="plan-name">月度检查</span>
+                                    <span class="plan-desc">检查冷凝压力、制冷剂量、电气连接</span>
+                                </div>
+                                <div class="plan-status upcoming">
+                                    <span>计划：2026-04-25</span>
+                                    <span>负责人：张工</span>
+                                </div>
+                                <div class="plan-action">
+                                    <button class="plan-btn">执行</button>
+                                </div>
+                            </div>
+                            <div class="plan-item">
+                                <div class="plan-icon quarterly">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                    </svg>
+                                </div>
+                                <div class="plan-info">
+                                    <span class="plan-name">季度保养</span>
+                                    <span class="plan-desc">更换冷冻油、清洗冷凝器、全面检修</span>
+                                </div>
+                                <div class="plan-status upcoming">
+                                    <span>计划：2026-06-15</span>
+                                    <span>负责人：李工</span>
+                                </div>
+                                <div class="plan-action">
+                                    <button class="plan-btn">查看</button>
+                                </div>
+                            </div>
+                            <div class="plan-item completed">
+                                <div class="plan-icon yearly">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                </div>
+                                <div class="plan-info">
+                                    <span class="plan-name">年度大修</span>
+                                    <span class="plan-desc">全面检修、性能测试、制冷剂充注</span>
+                                </div>
+                                <div class="plan-status completed">
+                                    <span>完成：2026-01-10</span>
+                                    <span>结果：正常</span>
+                                </div>
+                                <div class="plan-action">
+                                    <button class="plan-btn">查看报告</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="maintenance-records">
+                        <h4>维护记录</h4>
+                        <div class="record-list">
+                            <div class="record-item">
+                                <div class="record-date">
+                                    <span class="date-day">10</span>
+                                    <span class="date-month">1月</span>
+                                </div>
+                                <div class="record-content">
+                                    <div class="record-header">
+                                        <span class="record-title">年度大修完成</span>
+                                        <span class="record-result normal">结果正常</span>
+                                    </div>
+                                    <div class="record-detail">
+                                        <p>完成了机组全面检修，更换冷冻油8L，补充制冷剂5kg，清洗冷凝器管束，更换密封垫圈2处。检修后测试运行正常，COP恢复到6.2。</p>
+                                    </div>
+                                    <div class="record-footer">
+                                        <span>维护人：张工、李工</span>
+                                        <button class="record-link">查看附件</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record-item">
+                                <div class="record-date">
+                                    <span class="date-day">25</span>
+                                    <span class="date-month">3月</span>
+                                </div>
+                                <div class="record-content">
+                                    <div class="record-header">
+                                        <span class="record-title">月度检查</span>
+                                        <span class="record-result normal">结果正常</span>
+                                    </div>
+                                    <div class="record-detail">
+                                        <p>检查制冷系统压力、温度、电流等参数正常，电气接线牢固，冷却系统无泄漏。</p>
+                                    </div>
+                                    <div class="record-footer">
+                                        <span>维护人：王工</span>
+                                        <button class="record-link">查看附件</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record-item">
+                                <div class="record-date">
+                                    <span class="date-day">15</span>
+                                    <span class="date-month">2月</span>
+                                </div>
+                                <div class="record-content">
+                                    <div class="record-header">
+                                        <span class="record-title">冷冻水流量传感器更换</span>
+                                        <span class="record-result warning">结果异常</span>
+                                    </div>
+                                    <div class="record-detail">
+                                        <p>原传感器读数漂移，更换新的流量传感器后恢复正常。同时发现补水阀有轻微渗漏，已临时处理，计划下月更换。</p>
+                                    </div>
+                                    <div class="record-footer">
+                                        <span>维护人：张工</span>
+                                        <button class="record-link">查看附件</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="add-record-btn" onclick="addRecord()">添加维护记录</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 其他信息区 -->
+        <section class="other-section">
+            <div class="other-grid">
+                <!-- 参数设置 -->
+                <div class="panel collapsible">
+                    <div class="panel-header clickable" onclick="toggleCollapse(this)">
+                        <h3 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                            </svg>
+                            参数设置
+                        </h3>
+                        <svg class="collapse-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="panel-content collapsed">
+                        <div class="param-grid">
+                            <div class="param-item">
+                                <label>设定出水温度</label>
+                                <div class="param-input">
+                                    <input type="number" value="7.0" step="0.5">
+                                    <span>°C</span>
+                                </div>
+                                <span class="param-range">范围：5-12°C</span>
+                            </div>
+                            <div class="param-item">
+                                <label>最低负载率</label>
+                                <div class="param-input">
+                                    <input type="number" value="25" step="5">
+                                    <span>%</span>
+                                </div>
+                                <span class="param-range">范围：20-50%</span>
+                            </div>
+                            <div class="param-item">
+                                <label>温度PID_P</label>
+                                <div class="param-input">
+                                    <input type="number" value="5.0" step="0.1">
+                                </div>
+                                <span class="param-range">比例系数</span>
+                            </div>
+                            <div class="param-item">
+                                <label>温度PID_I</label>
+                                <div class="param-input">
+                                    <input type="number" value="0.5" step="0.1">
+                                </div>
+                                <span class="param-range">积分时间(秒)</span>
+                            </div>
+                        </div>
+                        <div class="param-actions">
+                            <button class="param-btn save">保存参数</button>
+                            <button class="param-btn reset">重置默认</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 关联设备 -->
+                <div class="panel collapsible">
+                    <div class="panel-header clickable" onclick="toggleCollapse(this)">
+                        <h3 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="18" cy="5" r="3"/>
+                                <circle cx="6" cy="12" r="3"/>
+                                <circle cx="18" cy="19" r="3"/>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                            </svg>
+                            关联设备
+                        </h3>
+                        <svg class="collapse-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="panel-content collapsed">
+                        <div class="related-devices">
+                            <div class="related-category">
+                                <h5>上游设备</h5>
+                                <div class="related-list">
+                                    <div class="related-item">
+                                        <span class="related-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                                <path d="M2 17l10 5 10-5"/>
+                                            </svg>
+                                        </span>
+                                        <span class="related-name">冷却塔 CT-01</span>
+                                        <span class="related-status running">运行中</span>
+                                        <a href="#" class="related-link">查看</a>
+                                    </div>
+                                    <div class="related-item">
+                                        <span class="related-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 2v20M2 12h20"/>
+                                            </svg>
+                                        </span>
+                                        <span class="related-name">冷却水泵 CP-01A</span>
+                                        <span class="related-status running">运行中</span>
+                                        <a href="#" class="related-link">查看</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="related-category">
+                                <h5>下游设备</h5>
+                                <div class="related-list">
+                                    <div class="related-item">
+                                        <span class="related-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                                <line x1="3" y1="9" x2="21" y2="9"/>
+                                                <line x1="9" y1="21" x2="9" y2="9"/>
+                                            </svg>
+                                        </span>
+                                        <span class="related-name">空气处理机组 AHU-01</span>
+                                        <span class="related-status running">运行中</span>
+                                        <a href="#" class="related-link">查看</a>
+                                    </div>
+                                    <div class="related-item">
+                                        <span class="related-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="5"/>
+                                                <line x1="12" y1="1" x2="12" y2="3"/>
+                                                <line x1="12" y1="21" x2="12" y2="23"/>
+                                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                            </svg>
+                                        </span>
+                                        <span class="related-name">风机盘管 FCU-A1-01</span>
+                                        <span class="related-status running">运行中</span>
+                                        <a href="#" class="related-link">查看</a>
+                                    </div>
+                                    <div class="related-item">
+                                        <span class="related-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="5"/>
+                                                <line x1="12" y1="1" x2="12" y2="3"/>
+                                                <line x1="12" y1="21" x2="12" y2="23"/>
+                                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                            </svg>
+                                        </span>
+                                        <span class="related-name">风机盘管 FCU-A1-02</span>
+                                        <span class="related-status stopped">停机</span>
+                                        <a href="#" class="related-link">查看</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作日志 -->
+                <div class="panel collapsible">
+                    <div class="panel-header clickable" onclick="toggleCollapse(this)">
+                        <h3 class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                            操作日志
+                        </h3>
+                        <svg class="collapse-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="panel-content collapsed">
+                        <div class="log-list">
+                            <div class="log-item">
+                                <span class="log-time">2026-04-17 11:26:00</span>
+                                <span class="log-user">系统</span>
+                                <span class="log-action">数据自动刷新</span>
+                            </div>
+                            <div class="log-item">
+                                <span class="log-time">2026-04-17 08:00:00</span>
+                                <span class="log-user">张工</span>
+                                <span class="log-action">切换运行模式为节能模式</span>
+                            </div>
+                            <div class="log-item">
+                                <span class="log-time">2026-04-16 18:00:00</span>
+                                <span class="log-user">系统</span>
+                                <span class="log-action">自动切换至夜间模式</span>
+                            </div>
+                            <div class="log-item">
+                                <span class="log-time">2026-04-16 08:30:00</span>
+                                <span class="log-user">李工</span>
+                                <span class="log-action">确认报警：冷凝压力过高</span>
+                            </div>
+                            <div class="log-item">
+                                <span class="log-time">2026-04-15 14:35:00</span>
+                                <span class="log-user">系统</span>
+                                <span class="log-action">报警自动恢复：冷冻水流量低</span>
+                            </div>
+                        </div>
+                        <div class="log-footer">
+                            <button class="log-more">加载更多</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 确认操作弹窗 -->
+    <div class="modal-overlay hidden" id="confirmModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h4>操作确认</h4>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">确定要执行此操作吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn confirm" onclick="executeOperation()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化实时图表
+        function initRealtimeChart() {
+            const chart = echarts.init(document.getElementById('realtimeChart'));
+            const now = new Date();
+            const data = [];
+            for (let i = 0; i < 20; i++) {
+                data.push({
+                    time: new Date(now - (20 - i) * 3 * 60 * 1000).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+                    temp: 7 + Math.random() * 0.5,
+                    current: 80 + Math.random() * 10,
+                    pressure: 9 + Math.random() * 0.8
+                });
+            }
+            
+            const option = {
+                tooltip: { trigger: 'axis' },
+                legend: { 
+                    data: ['出水温度', '运行电流', '冷凝压力'],
+                    textStyle: { color: '#8BA3B9' },
+                    top: 5
+                },
+                grid: { left: 50, right: 20, top: 40, bottom: 30 },
+                xAxis: {
+                    type: 'category',
+                    data: data.map(d => d.time),
+                    axisLine: { lineStyle: { color: '#2A3F5A' } },
+                    axisLabel: { color: '#5A7A9A', fontSize: 10 }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: { lineStyle: { color: '#2A3F5A' } },
+                    axisLabel: { color: '#5A7A9A', fontSize: 10 },
+                    splitLine: { lineStyle: { color: 'rgba(42, 63, 90, 0.5)' } }
+                },
+                series: [
+                    { name: '出水温度', type: 'line', data: data.map(d => d.temp.toFixed(1)), smooth: true, color: '#00B4DC' },
+                    { name: '运行电流', type: 'line', data: data.map(d => d.current.toFixed(1)), smooth: true, color: '#4ADE80', yAxisIndex: 1 },
+                    { name: '冷凝压力', type: 'line', data: data.map(d => d.pressure.toFixed(1)), smooth: true, color: '#FBBF24', yAxisIndex: 1 }
+                ]
+            };
+            chart.setOption(option);
+            return chart;
+        }
+
+        // 初始化历史图表
+        function initHistoryChart() {
+            const chart = echarts.init(document.getElementById('historyChart'));
+            const dates = [];
+            const tempData = [];
+            const copData = [];
+            for (let i = 0; i < 24; i++) {
+                dates.push(`${i}:00`);
+                tempData.push((6.8 + Math.random() * 1).toFixed(1));
+                copData.push((5.5 + Math.random() * 1).toFixed(1));
+            }
+            
+            const option = {
+                tooltip: { trigger: 'axis' },
+                legend: { 
+                    data: ['出水温度 (°C)', 'COP'],
+                    textStyle: { color: '#8BA3B9' },
+                    top: 5
+                },
+                grid: { left: 50, right: 20, top: 40, bottom: 30 },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLine: { lineStyle: { color: '#2A3F5A' } },
+                    axisLabel: { color: '#5A7A9A', fontSize: 10 }
+                },
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: '温度',
+                        axisLine: { lineStyle: { color: '#2A3F5A' } },
+                        axisLabel: { color: '#5A7A9A', fontSize: 10, formatter: '{value}°C' },
+                        splitLine: { lineStyle: { color: 'rgba(42, 63, 90, 0.5)' } }
+                    },
+                    {
+                        type: 'value',
+                        name: 'COP',
+                        axisLine: { lineStyle: { color: '#2A3F5A' } },
+                        axisLabel: { color: '#5A7A9A', fontSize: 10 },
+                        splitLine: { show: false }
+                    }
+                ],
+                series: [
+                    { name: '出水温度 (°C)', type: 'line', data: tempData, smooth: true, color: '#00B4DC' },
+                    { name: 'COP', type: 'line', data: copData, smooth: true, color: '#4ADE80', yAxisIndex: 1 }
+                ]
+            };
+            chart.setOption(option);
+            return chart;
+        }
+
+        // 仪表盘
+        function initGauge(id, value, max, color) {
+            const chart = echarts.init(document.getElementById(id));
+            const option = {
+                series: [{
+                    type: 'gauge',
+                    startAngle: 200,
+                    endAngle: -20,
+                    min: 0,
+                    max: max,
+                    splitNumber: 5,
+                    itemStyle: { color: color },
+                    progress: { show: true, width: 12 },
+                    pointer: { show: false },
+                    axisLine: { lineStyle: { width: 12, color: [[1, '#1E3A5F']] } },
+                    axisTick: { show: false },
+                    splitLine: { show: false },
+                    axisLabel: { show: false },
+                    anchor: { show: false },
+                    title: { show: false },
+                    detail: {
+                        valueAnimation: true,
+                        fontSize: 20,
+                        color: '#FFFFFF',
+                        formatter: '{value}',
+                        offsetCenter: [0, '0%']
+                    },
+                    data: [{ value: value }]
+                }]
+            };
+            chart.setOption(option);
+            return chart;
+        }
+
+        // 全局图表实例
+        let realtimeChart, historyChart;
+        let gaugeCharts = {};
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            realtimeChart = initRealtimeChart();
+            historyChart = initHistoryChart();
+            gaugeCharts.temp = initGauge('gauge-temp', 7.2, 15, '#00B4DC');
+            gaugeCharts.pressure = initGauge('gauge-pressure', 9.8, 15, '#FBBF24');
+            gaugeCharts.current = initGauge('gauge-current', 85.3, 150, '#4ADE80');
+            gaugeCharts.frequency = initGauge('gauge-frequency', 48.5, 60, '#00B4DC');
+
+            // 窗口调整时重绘图表
+            window.addEventListener('resize', function() {
+                realtimeChart && realtimeChart.resize();
+                historyChart && historyChart.resize();
+                Object.values(gaugeCharts).forEach(chart => chart && chart.resize());
+            });
+
+            // 更新最后更新时间
+            updateLastTime();
+        });
+
+        // 更新时间
+        function updateLastTime() {
+            const now = new Date();
+            document.getElementById('lastUpdateTime').textContent = now.toLocaleString('zh-CN');
+        }
+
+        // 刷新数据
+        function refreshData() {
+            updateLastTime();
+            realtimeChart && realtimeChart.setOption({
+                series: [
+                    { data: Array(20).fill(0).map(() => (7 + Math.random() * 0.5).toFixed(1)) },
+                    { data: Array(20).fill(0).map(() => (80 + Math.random() * 10).toFixed(1)) },
+                    { data: Array(20).fill(0).map(() => (9 + Math.random() * 0.8).toFixed(1)) }
+                ]
+            });
+        }
+
+        // 历史时间范围切换
+        function setHistoryRange(range) {
+            document.querySelectorAll('.time-filter .time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            // 实际项目中这里会请求不同范围的历史数据
+        }
+
+        // 报警标签页切换
+        function switchAlarmTab(tab) {
+            document.querySelectorAll('.alarm-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            if (tab === 'current') {
+                document.getElementById('currentAlarmList').classList.remove('hidden');
+                document.getElementById('historyAlarmList').classList.add('hidden');
+            } else {
+                document.getElementById('currentAlarmList').classList.add('hidden');
+                document.getElementById('historyAlarmList').classList.remove('hidden');
+            }
+        }
+
+        // 报警处理
+        function handleAlarm(action) {
+            console.log('处理报警:', action);
+        }
+
+        // 确认操作弹窗
+        let pendingOperation = '';
+        function confirmOperation(operation) {
+            pendingOperation = operation;
+            document.getElementById('confirmMessage').textContent = `确定要${operation}主机 A1 吗？`;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            pendingOperation = '';
+        }
+
+        function executeOperation() {
+            console.log('执行操作:', pendingOperation);
+            closeModal();
+        }
+
+        // 切换模式
+        function toggleMode() {
+            console.log('切换运行模式');
+        }
+
+        // 折叠面板
+        function toggleCollapse(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.collapse-icon');
+            content.classList.toggle('collapsed');
+            icon.style.transform = content.classList.contains('collapsed') ? '' : 'rotate(180deg)';
+        }
+
+        // 新增维护计划
+        function addMaintenance() {
+            console.log('新增维护计划');
+        }
+
+        // 添加维护记录
+        function addRecord() {
+            console.log('添加维护记录');
+        }
+    </script>
+</body>
+</html>
