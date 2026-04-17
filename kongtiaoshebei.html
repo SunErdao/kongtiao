@@ -119,8 +119,17 @@
                     </div>
                 </div>
                 <div class="monitor-content">
+                    <!-- 核心参数仪表 -->
+                    <div class="params-header">
+                        <h4>核心运行参数</h4>
+                    </div>
                     <div class="gauge-grid">
                         <div class="gauge-card">
+                            <div class="gauge-icon temp-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/>
+                                </svg>
+                            </div>
                             <div class="gauge-container-sm">
                                 <div id="gauge-temp" class="gauge-chart"></div>
                             </div>
@@ -131,6 +140,13 @@
                             </div>
                         </div>
                         <div class="gauge-card">
+                            <div class="gauge-icon pressure-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                    <path d="M16 16l-4-4-4 4"/>
+                                </svg>
+                            </div>
                             <div class="gauge-container-sm">
                                 <div id="gauge-pressure" class="gauge-chart"></div>
                             </div>
@@ -141,6 +157,11 @@
                             </div>
                         </div>
                         <div class="gauge-card">
+                            <div class="gauge-icon current-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                                </svg>
+                            </div>
                             <div class="gauge-container-sm">
                                 <div id="gauge-current" class="gauge-chart"></div>
                             </div>
@@ -151,6 +172,14 @@
                             </div>
                         </div>
                         <div class="gauge-card">
+                            <div class="gauge-icon frequency-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 12h2m4 0h2m4 0h2m4 0h2"/>
+                                    <path d="M6 8l2-2v6l-2-2"/>
+                                    <path d="M18 8l-2-2v6l2-2"/>
+                                    <path d="M6 12h12"/>
+                                </svg>
+                            </div>
                             <div class="gauge-container-sm">
                                 <div id="gauge-frequency" class="gauge-chart"></div>
                             </div>
@@ -184,11 +213,29 @@
                                 <span class="indicator-name">电子膨胀阀</span>
                                 <span class="indicator-status">开启 65%</span>
                             </div>
+                            <div class="indicator-item">
+                                <span class="indicator-dot running"></span>
+                                <span class="indicator-name">冷冻水泵</span>
+                                <span class="indicator-status">运行</span>
+                            </div>
+                            <div class="indicator-item">
+                                <span class="indicator-dot stopped"></span>
+                                <span class="indicator-name">辅助油泵</span>
+                                <span class="indicator-status">停机</span>
+                            </div>
                         </div>
                     </div>
                     <div class="realtime-chart">
-                        <h4>实时趋势（最近1小时）</h4>
-                        <div id="realtimeChart" class="chart-container tall"></div>
+                        <div class="chart-header">
+                            <h4>实时趋势（最近1小时）</h4>
+                            <div class="chart-legend">
+                                <span class="legend-item"><i class="dot temp"></i>出水温度</span>
+                                <span class="legend-item"><i class="dot pressure"></i>冷凝压力</span>
+                                <span class="legend-item"><i class="dot current"></i>运行电流</span>
+                                <span class="legend-item"><i class="dot frequency"></i>运行频率</span>
+                            </div>
+                        </div>
+                        <div id="realtimeChart" class="realtime-chart-container"></div>
                     </div>
                 </div>
             </div>
@@ -215,10 +262,13 @@
                 </div>
                 <div class="history-content">
                     <div class="history-chart">
-                        <div id="historyChart" class="chart-container tall"></div>
+                        <div id="historyChart" class="history-chart-box"></div>
                     </div>
                     <div class="history-table-container">
-                        <h4>历史数据明细</h4>
+                        <div class="table-header">
+                            <h4>历史数据明细</h4>
+                            <button class="export-btn-sm">导出 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+                        </div>
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -226,6 +276,7 @@
                                     <th>出水温度 (°C)</th>
                                     <th>冷凝压力 (bar)</th>
                                     <th>运行电流 (A)</th>
+                                    <th>运行频率 (Hz)</th>
                                     <th>COP</th>
                                     <th>操作</th>
                                 </tr>
@@ -236,6 +287,7 @@
                                     <td>7.2</td>
                                     <td class="warning">9.8</td>
                                     <td>85.3</td>
+                                    <td>48.5</td>
                                     <td class="success">5.8</td>
                                     <td><a href="#" class="table-link">详情</a></td>
                                 </tr>
@@ -244,6 +296,7 @@
                                     <td>7.1</td>
                                     <td class="warning">9.7</td>
                                     <td>84.8</td>
+                                    <td>48.2</td>
                                     <td class="success">5.9</td>
                                     <td><a href="#" class="table-link">详情</a></td>
                                 </tr>
@@ -252,6 +305,7 @@
                                     <td>7.0</td>
                                     <td>9.4</td>
                                     <td>83.5</td>
+                                    <td>47.8</td>
                                     <td class="success">6.0</td>
                                     <td><a href="#" class="table-link">详情</a></td>
                                 </tr>
@@ -260,6 +314,7 @@
                                     <td>7.3</td>
                                     <td>9.3</td>
                                     <td>82.1</td>
+                                    <td>47.5</td>
                                     <td class="success">5.9</td>
                                     <td><a href="#" class="table-link">详情</a></td>
                                 </tr>
@@ -268,6 +323,7 @@
                                     <td>7.5</td>
                                     <td>9.2</td>
                                     <td>80.5</td>
+                                    <td>46.8</td>
                                     <td class="success">5.8</td>
                                     <td><a href="#" class="table-link">详情</a></td>
                                 </tr>
@@ -280,7 +336,6 @@
                                 <span class="page-info">1/12</span>
                                 <button class="page-btn">下一页</button>
                             </div>
-                            <button class="export-btn">导出 Excel</button>
                         </div>
                     </div>
                 </div>
@@ -779,44 +834,72 @@
     </div>
 
     <script>
-        // 初始化实时图表
+        // 初始化实时图表 - 四参数趋势
         function initRealtimeChart() {
             const chart = echarts.init(document.getElementById('realtimeChart'));
             const now = new Date();
             const data = [];
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 24; i++) {
                 data.push({
-                    time: new Date(now - (20 - i) * 3 * 60 * 1000).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
-                    temp: 7 + Math.random() * 0.5,
-                    current: 80 + Math.random() * 10,
-                    pressure: 9 + Math.random() * 0.8
+                    time: new Date(now - (24 - i) * 2.5 * 60 * 1000).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+                    temp: (7 + Math.random() * 0.8).toFixed(1),
+                    pressure: (9 + Math.random() * 1.2).toFixed(1),
+                    current: (78 + Math.random() * 15).toFixed(1),
+                    frequency: (46 + Math.random() * 6).toFixed(1)
                 });
             }
             
             const option = {
-                tooltip: { trigger: 'axis' },
-                legend: { 
-                    data: ['出水温度', '运行电流', '冷凝压力'],
-                    textStyle: { color: '#8BA3B9' },
-                    top: 5
+                tooltip: { 
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(27, 58, 95, 0.95)',
+                    borderColor: 'rgba(0, 180, 220, 0.3)',
+                    textStyle: { color: '#E0E0E0', fontSize: 12 },
+                    formatter: function(params) {
+                        let result = params[0].axisValue + '<br/>';
+                        params.forEach(function(item) {
+                            const units = { '出水温度': '°C', '冷凝压力': 'bar', '运行电流': 'A', '运行频率': 'Hz' };
+                            result += '<span style="display:inline-block;margin-right:5px;border-radius:50%;width:10px;height:10px;background-color:' + item.color + '"></span>';
+                            result += item.seriesName + ': ' + item.value + (units[item.seriesName] || '') + '<br/>';
+                        });
+                        return result;
+                    }
                 },
-                grid: { left: 50, right: 20, top: 40, bottom: 30 },
+                legend: { show: false },
+                grid: { left: 45, right: 15, top: 10, bottom: 25 },
                 xAxis: {
                     type: 'category',
                     data: data.map(d => d.time),
                     axisLine: { lineStyle: { color: '#2A3F5A' } },
-                    axisLabel: { color: '#5A7A9A', fontSize: 10 }
+                    axisLabel: { color: '#5A7A9A', fontSize: 10, interval: 3 }
                 },
-                yAxis: {
-                    type: 'value',
-                    axisLine: { lineStyle: { color: '#2A3F5A' } },
-                    axisLabel: { color: '#5A7A9A', fontSize: 10 },
-                    splitLine: { lineStyle: { color: 'rgba(42, 63, 90, 0.5)' } }
-                },
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: '温度/压力',
+                        nameTextStyle: { color: '#5A7A9A', fontSize: 10 },
+                        axisLine: { lineStyle: { color: '#2A3F5A' } },
+                        axisLabel: { color: '#5A7A9A', fontSize: 10 },
+                        splitLine: { lineStyle: { color: 'rgba(42, 63, 90, 0.3)' } },
+                        min: 5,
+                        max: 12
+                    },
+                    {
+                        type: 'value',
+                        name: '电流/频率',
+                        nameTextStyle: { color: '#5A7A9A', fontSize: 10 },
+                        axisLine: { lineStyle: { color: '#2A3F5A' } },
+                        axisLabel: { color: '#5A7A9A', fontSize: 10 },
+                        splitLine: { show: false },
+                        min: 40,
+                        max: 100
+                    }
+                ],
                 series: [
-                    { name: '出水温度', type: 'line', data: data.map(d => d.temp.toFixed(1)), smooth: true, color: '#00B4DC' },
-                    { name: '运行电流', type: 'line', data: data.map(d => d.current.toFixed(1)), smooth: true, color: '#4ADE80', yAxisIndex: 1 },
-                    { name: '冷凝压力', type: 'line', data: data.map(d => d.pressure.toFixed(1)), smooth: true, color: '#FBBF24', yAxisIndex: 1 }
+                    { name: '出水温度', type: 'line', data: data.map(d => d.temp), smooth: true, color: '#00B4DC', lineStyle: { width: 2 }, symbol: 'none' },
+                    { name: '冷凝压力', type: 'line', data: data.map(d => d.pressure), smooth: true, color: '#FBBF24', lineStyle: { width: 2 }, symbol: 'none' },
+                    { name: '运行电流', type: 'line', data: data.map(d => d.current), smooth: true, color: '#4ADE80', yAxisIndex: 1, lineStyle: { width: 2 }, symbol: 'none' },
+                    { name: '运行频率', type: 'line', data: data.map(d => d.frequency), smooth: true, color: '#A78BFA', yAxisIndex: 1, lineStyle: { width: 2, type: 'dashed' }, symbol: 'none' }
                 ]
             };
             chart.setOption(option);
@@ -828,21 +911,32 @@
             const chart = echarts.init(document.getElementById('historyChart'));
             const dates = [];
             const tempData = [];
+            const pressureData = [];
+            const currentData = [];
             const copData = [];
             for (let i = 0; i < 24; i++) {
                 dates.push(`${i}:00`);
-                tempData.push((6.8 + Math.random() * 1).toFixed(1));
-                copData.push((5.5 + Math.random() * 1).toFixed(1));
+                tempData.push((6.8 + Math.random() * 1.2).toFixed(1));
+                pressureData.push((8.5 + Math.random() * 1.5).toFixed(1));
+                currentData.push((75 + Math.random() * 20).toFixed(1));
+                copData.push((5.2 + Math.random() * 1.2).toFixed(1));
             }
             
             const option = {
-                tooltip: { trigger: 'axis' },
-                legend: { 
-                    data: ['出水温度 (°C)', 'COP'],
-                    textStyle: { color: '#8BA3B9' },
-                    top: 5
+                tooltip: { 
+                    trigger: 'axis',
+                    backgroundColor: 'rgba(27, 58, 95, 0.95)',
+                    borderColor: 'rgba(0, 180, 220, 0.3)',
+                    textStyle: { color: '#E0E0E0', fontSize: 12 }
                 },
-                grid: { left: 50, right: 20, top: 40, bottom: 30 },
+                legend: { 
+                    data: ['出水温度', '冷凝压力', '运行电流', 'COP'],
+                    textStyle: { color: '#8BA3B9', fontSize: 10 },
+                    top: 5,
+                    itemWidth: 14,
+                    itemHeight: 8
+                },
+                grid: { left: 45, right: 15, top: 35, bottom: 25 },
                 xAxis: {
                     type: 'category',
                     data: dates,
@@ -852,22 +946,26 @@
                 yAxis: [
                     {
                         type: 'value',
-                        name: '温度',
+                        name: '温度/压力',
+                        nameTextStyle: { color: '#5A7A9A', fontSize: 10 },
                         axisLine: { lineStyle: { color: '#2A3F5A' } },
-                        axisLabel: { color: '#5A7A9A', fontSize: 10, formatter: '{value}°C' },
-                        splitLine: { lineStyle: { color: 'rgba(42, 63, 90, 0.5)' } }
+                        axisLabel: { color: '#5A7A9A', fontSize: 10 },
+                        splitLine: { lineStyle: { color: 'rgba(42, 63, 90, 0.3)' } }
                     },
                     {
                         type: 'value',
-                        name: 'COP',
+                        name: '电流/COP',
+                        nameTextStyle: { color: '#5A7A9A', fontSize: 10 },
                         axisLine: { lineStyle: { color: '#2A3F5A' } },
                         axisLabel: { color: '#5A7A9A', fontSize: 10 },
                         splitLine: { show: false }
                     }
                 ],
                 series: [
-                    { name: '出水温度 (°C)', type: 'line', data: tempData, smooth: true, color: '#00B4DC' },
-                    { name: 'COP', type: 'line', data: copData, smooth: true, color: '#4ADE80', yAxisIndex: 1 }
+                    { name: '出水温度', type: 'line', data: tempData, smooth: true, color: '#00B4DC', lineStyle: { width: 2 }, symbol: 'none' },
+                    { name: '冷凝压力', type: 'line', data: pressureData, smooth: true, color: '#FBBF24', lineStyle: { width: 2 }, symbol: 'none' },
+                    { name: '运行电流', type: 'line', data: currentData, smooth: true, color: '#4ADE80', yAxisIndex: 1, lineStyle: { width: 2 }, symbol: 'none' },
+                    { name: 'COP', type: 'line', data: copData, smooth: true, color: '#A78BFA', yAxisIndex: 1, lineStyle: { width: 2, type: 'dashed' }, symbol: 'none' }
                 ]
             };
             chart.setOption(option);
@@ -886,9 +984,9 @@
                     max: max,
                     splitNumber: 5,
                     itemStyle: { color: color },
-                    progress: { show: true, width: 12 },
+                    progress: { show: true, width: 10 },
                     pointer: { show: false },
-                    axisLine: { lineStyle: { width: 12, color: [[1, '#1E3A5F']] } },
+                    axisLine: { lineStyle: { width: 10, color: [[1, '#1E3A5F']] } },
                     axisTick: { show: false },
                     splitLine: { show: false },
                     axisLabel: { show: false },
@@ -896,7 +994,7 @@
                     title: { show: false },
                     detail: {
                         valueAnimation: true,
-                        fontSize: 20,
+                        fontSize: 18,
                         color: '#FFFFFF',
                         formatter: '{value}',
                         offsetCenter: [0, '0%']
@@ -919,7 +1017,7 @@
             gaugeCharts.temp = initGauge('gauge-temp', 7.2, 15, '#00B4DC');
             gaugeCharts.pressure = initGauge('gauge-pressure', 9.8, 15, '#FBBF24');
             gaugeCharts.current = initGauge('gauge-current', 85.3, 150, '#4ADE80');
-            gaugeCharts.frequency = initGauge('gauge-frequency', 48.5, 60, '#00B4DC');
+            gaugeCharts.frequency = initGauge('gauge-frequency', 48.5, 60, '#A78BFA');
 
             // 窗口调整时重绘图表
             window.addEventListener('resize', function() {
@@ -941,13 +1039,25 @@
         // 刷新数据
         function refreshData() {
             updateLastTime();
+            const newTemp = (7 + Math.random() * 0.8).toFixed(1);
+            const newPressure = (9 + Math.random() * 1.2).toFixed(1);
+            const newCurrent = (78 + Math.random() * 15).toFixed(1);
+            const newFrequency = (46 + Math.random() * 6).toFixed(1);
+            
             realtimeChart && realtimeChart.setOption({
                 series: [
-                    { data: Array(20).fill(0).map(() => (7 + Math.random() * 0.5).toFixed(1)) },
-                    { data: Array(20).fill(0).map(() => (80 + Math.random() * 10).toFixed(1)) },
-                    { data: Array(20).fill(0).map(() => (9 + Math.random() * 0.8).toFixed(1)) }
+                    { data: Array(24).fill(0).map(() => (7 + Math.random() * 0.8).toFixed(1)) },
+                    { data: Array(24).fill(0).map(() => (9 + Math.random() * 1.2).toFixed(1)) },
+                    { data: Array(24).fill(0).map(() => (78 + Math.random() * 15).toFixed(1)) },
+                    { data: Array(24).fill(0).map(() => (46 + Math.random() * 6).toFixed(1)) }
                 ]
             });
+            
+            // 同时更新仪表盘
+            gaugeCharts.temp.setOption({ series: [{ data: [{ value: parseFloat(newTemp) }] }] });
+            gaugeCharts.pressure.setOption({ series: [{ data: [{ value: parseFloat(newPressure) }] }] });
+            gaugeCharts.current.setOption({ series: [{ data: [{ value: parseFloat(newCurrent) }] }] });
+            gaugeCharts.frequency.setOption({ series: [{ data: [{ value: parseFloat(newFrequency) }] }] });
         }
 
         // 历史时间范围切换

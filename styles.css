@@ -766,15 +766,15 @@ body {
 }
 
 .node-bg.running {
-    var(--node-color, #00D9A5);
+    --node-color: #00D9A5;
 }
 
 .node-bg.stopped {
-    var(--node-color, #5A7A9A);
+    --node-color: #5A7A9A;
 }
 
 .node-bg.fault {
-    var(--node-color, #F87171);
+    --node-color: #F87171;
     animation: faultPulse 1s infinite;
 }
 
@@ -1319,6 +1319,17 @@ body {
     padding: 0 20px 20px;
 }
 
+/* 核心参数标题 */
+.params-header {
+    padding: 16px 0 12px;
+}
+
+.params-header h4 {
+    font-size: 13px;
+    color: #8BA3B9;
+    font-weight: 500;
+}
+
 .gauge-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1331,11 +1342,57 @@ body {
     border-radius: 10px;
     padding: 16px;
     text-align: center;
+    position: relative;
+    border: 1px solid rgba(0, 180, 220, 0.1);
+    transition: all 0.3s;
+}
+
+.gauge-card:hover {
+    background: rgba(0, 50, 90, 0.4);
+    border-color: rgba(0, 180, 220, 0.2);
+}
+
+/* 参数图标 */
+.gauge-icon {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gauge-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.gauge-icon.temp-icon {
+    background: rgba(0, 180, 220, 0.2);
+    color: #00B4DC;
+}
+
+.gauge-icon.pressure-icon {
+    background: rgba(251, 191, 36, 0.2);
+    color: #FBBF24;
+}
+
+.gauge-icon.current-icon {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ADE80;
+}
+
+.gauge-icon.frequency-icon {
+    background: rgba(167, 139, 250, 0.2);
+    color: #A78BFA;
 }
 
 .gauge-container-sm {
-    height: 100px;
-    margin-bottom: 12px;
+    height: 90px;
+    margin-bottom: 8px;
 }
 
 .gauge-info {
@@ -1350,7 +1407,7 @@ body {
 }
 
 .gauge-info .gauge-value {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 600;
     color: #FFFFFF;
 }
@@ -1384,7 +1441,7 @@ body {
 
 /* 组件状态指示器 */
 .status-indicators {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .status-indicators h4 {
@@ -1395,8 +1452,8 @@ body {
 
 .indicator-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
 }
 
 .indicator-item {
@@ -1441,27 +1498,123 @@ body {
     color: #4ADE80;
 }
 
+.indicator-item.stopped .indicator-status {
+    color: #5A7A9A;
+}
+
+/* 实时趋势图表 */
+.realtime-chart {
+    background: rgba(0, 30, 60, 0.3);
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.realtime-chart .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
 .realtime-chart h4 {
     font-size: 13px;
     color: #8BA3B9;
-    margin-bottom: 12px;
+    margin: 0;
+}
+
+.realtime-chart .chart-legend {
+    display: flex;
+    gap: 16px;
+}
+
+.realtime-chart .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #8BA3B9;
+}
+
+.realtime-chart .legend-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.realtime-chart .legend-item .dot.temp { background: #00B4DC; }
+.realtime-chart .legend-item .dot.pressure { background: #FBBF24; }
+.realtime-chart .legend-item .dot.current { background: #4ADE80; }
+.realtime-chart .legend-item .dot.frequency { background: #A78BFA; }
+
+.realtime-chart-container {
+    height: 180px;
 }
 
 /* 历史数据区域 */
 .history-section .chart-container {
-    height: 250px;
+    height: 200px;
 }
 
 .history-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
+}
+
+.history-chart {
+    background: rgba(0, 30, 60, 0.3);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.history-chart-box {
+    height: 170px;
+}
+
+.history-table-container {
+    background: rgba(0, 30, 60, 0.3);
+    border-radius: 10px;
+    padding: 12px;
 }
 
 .history-table-container h4 {
     font-size: 13px;
     color: #8BA3B9;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+}
+
+.table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.table-header h4 {
+    margin: 0;
+}
+
+.export-btn-sm {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(0, 180, 220, 0.15);
+    border: 1px solid rgba(0, 180, 220, 0.3);
+    border-radius: 4px;
+    color: #00B4DC;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.export-btn-sm:hover {
+    background: rgba(0, 180, 220, 0.25);
+}
+
+.export-btn-sm svg {
+    width: 12px;
+    height: 12px;
 }
 
 /* 数据表格 */
@@ -1473,7 +1626,7 @@ body {
 
 .data-table th {
     text-align: left;
-    padding: 10px 12px;
+    padding: 8px 10px;
     background: rgba(0, 30, 60, 0.4);
     color: #8BA3B9;
     font-weight: 500;
@@ -1489,7 +1642,7 @@ body {
 }
 
 .data-table td {
-    padding: 10px 12px;
+    padding: 8px 10px;
     color: #FFFFFF;
     border-bottom: 1px solid rgba(42, 63, 90, 0.3);
 }
@@ -1523,7 +1676,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
     font-size: 12px;
     color: #5A7A9A;
 }
